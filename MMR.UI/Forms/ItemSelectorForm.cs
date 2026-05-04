@@ -1,12 +1,14 @@
-﻿using System;
+﻿using MMR.Randomizer.Extensions;
+using MMR.Randomizer.GameObjects;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Windows.Forms;
-using MMR.Randomizer.GameObjects;
-using MMR.Randomizer.Extensions;
 
 namespace MMR.UI.Forms
 {
+    [SupportedOSPlatform("windows")]
     public partial class ItemSelectorForm : Form
     {
         public List<Item> ReturnItems;
