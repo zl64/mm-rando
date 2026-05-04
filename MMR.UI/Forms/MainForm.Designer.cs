@@ -341,7 +341,7 @@ namespace MMR.UI.Forms
             // 
             // openROM
             // 
-            this.openROM.Filter = "ROM files|*.z64";
+            this.openROM.Filter = "ROM files|*.z64; *.n64; *.v64";
             // 
             // openLogic
             // 
@@ -3078,7 +3078,7 @@ namespace MMR.UI.Forms
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(277, 15);
             this.label1.TabIndex = 12;
-            this.label1.Text = "ROM must be Majora\'s Mask (U) ending with \".z64\"";
+            this.label1.Text = "ROM must be Majora's Mask (NTSC-U v1.0)";
             // 
             // bApplyPatch
             // 

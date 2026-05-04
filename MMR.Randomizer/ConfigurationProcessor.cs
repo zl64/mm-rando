@@ -47,6 +47,11 @@ namespace MMR.Randomizer
 
             if (configuration.OutputSettings.GenerateROM || configuration.OutputSettings.OutputVC || configuration.OutputSettings.GeneratePatch || configuration.OutputSettings.GenerateCosmeticsPatch)
             {
+                // The time it takes to detect byte order and convert to big endian should be less than a
+                // second, so there's no reason not to allow users to use non-big endian ROMs and just
+                // convert it for them.
+                configuration.OutputSettings.InputROMFilename = ByteOrderUtils.ToBigEndian(configuration.OutputSettings.InputROMFilename);
+
                 if (!RomUtils.ValidateROM(configuration.OutputSettings.InputROMFilename))
                 {
                     return "Cannot verify input ROM is Majora's Mask (U).";

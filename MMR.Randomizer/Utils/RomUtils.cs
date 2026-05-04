@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Numerics;
+using System.Buffers.Binary;
 
 namespace MMR.Randomizer.Utils
 {
@@ -22,6 +23,7 @@ namespace MMR.Randomizer.Utils
         const int FILE_TABLE = 0x1A500;
         const int SIGNATURE_ADDRESS = 0x1A4D0;
         const int OVERLAY_TABLE = 0xC45510;
+
         public static void SetStrings(byte[] hack, string ver, string setting)
         {
             ResourceUtils.ApplyHack(hack);
@@ -106,49 +108,6 @@ namespace MMR.Randomizer.Utils
             int index = VRAMToFile(vram);
             CheckCompressed(index);
             return index;
-        }
-
-        public static int ByteswapROM(string filename)
-        {
-            using (BinaryReader ROM = new BinaryReader(File.OpenRead(filename)))
-            {
-                if (ROM.BaseStream.Length % 4 != 0)
-                {
-                    return -1;
-                }
-
-                byte[] buffer = new byte[4];
-                ROM.Read(buffer, 0, 4);
-                // very hacky
-                ROM.BaseStream.Seek(0, 0);
-                if (buffer[0] == 0x80)
-                {
-                    return 1;
-                }
-                else if (buffer[1] == 0x80)
-                {
-                    using (BinaryWriter newROM = new BinaryWriter(File.Open(filename + ".z64", FileMode.Create)))
-                    {
-                        while (ROM.BaseStream.Position < ROM.BaseStream.Length)
-                        {
-                            newROM.Write(ReadWriteUtils.Byteswap16(ReadWriteUtils.ReadU16(ROM)));
-                        }
-                    }
-                    return 0;
-                }
-                else if (buffer[3] == 0x80)
-                {
-                    using (BinaryWriter newROM = new BinaryWriter(File.Open(filename + ".z64", FileMode.Create)))
-                    {
-                        while (ROM.BaseStream.Position < ROM.BaseStream.Length)
-                        {
-                            newROM.Write(ReadWriteUtils.Byteswap32(ReadWriteUtils.ReadU32(ROM)));
-                        }
-                    }
-                    return 0;
-                }
-            }
-            return -1;
         }
 
         private static void UpdateFileTable(byte[] ROM)
