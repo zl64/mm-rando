@@ -32,12 +32,6 @@ There is a list of other known issues in the #known-issues channel of our discor
 
 ### FAQS 
 
-Q: My ROM doesn't seem to work what's wrong?  
-A: The ROM should be a .z64 file (big endian). If it is not .z64 it will not work. Make sure you are not trying to use a ROM with a .n64 or .v64 extension. You will have to use Tool64 here to byteswap your ROM to "Big Endian": https://www.zophar.net/utilities/n64aud/tool-n64.html Also do NOT re-randomize a already randomized rom.  
-
-Q: I renamed my ROM to .z64 but it's not working?  
-A: DO NOT RENAME YOUR ROM! It has to be BYTESWAPED using Tool64 for it to work properly!  
-
 Q: It says I need the expansion pack when I try to boot! How do I fix this?  
 A: You need to be sure you are running the game with 8MB of ram (memory) not 4MB. In P64 this can be found in Options > Settings > settings: MAJORAS MASK > Set memory to 8MB  
 
