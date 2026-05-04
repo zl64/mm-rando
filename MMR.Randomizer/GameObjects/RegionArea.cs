@@ -1,27 +1,26 @@
 ﻿using MMR.Randomizer.Attributes;
 
-namespace MMR.Randomizer.GameObjects
+namespace MMR.Randomizer.GameObjects;
+
+public enum RegionArea
 {
-    public enum RegionArea
-    {
-        None,
+    None,
 
-        [RegionName("town", "in")]
-        Town,
+    [RegionName("town", "in")]
+    Town,
 
-        [RegionName("the swamp", "in")]
-        Swamp,
+    [RegionName("the swamp", "in")]
+    Swamp,
 
-        [RegionName("the mountains", "in")]
-        Mountain,
+    [RegionName("the mountains", "in")]
+    Mountain,
 
-        [RegionName("the ranch", "in")]
-        Ranch,
+    [RegionName("the ranch", "in")]
+    Ranch,
 
-        [RegionName("the ocean", "in")]
-        Ocean,
+    [RegionName("the ocean", "in")]
+    Ocean,
 
-        [RegionName("the canyon", "in")]
-        Canyon,
-    }
+    [RegionName("the canyon", "in")]
+    Canyon,
 }

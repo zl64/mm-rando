@@ -4,35 +4,34 @@ using MMR.Randomizer.Extensions;
 using System.Drawing;
 using System.IO;
 
-namespace MMR.Randomizer.Asm
+namespace MMR.Randomizer.Asm;
+
+/// <summary>
+/// World Colors configuration structure.
+/// </summary>
+public struct WorldColorsConfigStruct : IAsmConfigStruct
 {
+    public uint Version;
+    public Color[] Colors;
+    public uint Flags;
+
     /// <summary>
-    /// World Colors configuration structure.
+    /// Convert to bytes.
     /// </summary>
-    public struct WorldColorsConfigStruct : IAsmConfigStruct
+    /// <returns>Bytes</returns>
+    public byte[] ToBytes()
     {
-        public uint Version;
-        public Color[] Colors;
-        public uint Flags;
-
-        /// <summary>
-        /// Convert to bytes.
-        /// </summary>
-        /// <returns>Bytes</returns>
-        public byte[] ToBytes()
+        using (var memoryStream = new MemoryStream())
+        using (var writer = new BeBinaryWriter(memoryStream))
         {
-            using (var memoryStream = new MemoryStream())
-            using (var writer = new BeBinaryWriter(memoryStream))
-            {
-                writer.WriteUInt32(this.Version);
+            writer.WriteUInt32(this.Version);
 
-                foreach (var color in this.Colors)
-                {
-                    writer.WriteBytes(color.ToBytesRGB(0));
-                }
-                writer.WriteUInt32(this.Flags);
-                return memoryStream.ToArray();
+            foreach (var color in this.Colors)
+            {
+                writer.WriteBytes(color.ToBytesRGB(0));
             }
+            writer.WriteUInt32(this.Flags);
+            return memoryStream.ToArray();
         }
     }
 }

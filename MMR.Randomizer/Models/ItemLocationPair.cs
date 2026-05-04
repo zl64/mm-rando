@@ -1,9 +1,8 @@
-﻿namespace MMR.Randomizer.Models
+﻿namespace MMR.Randomizer.Models;
+
+public class ItemLocationPair
 {
-    public class ItemLocationPair
-    {
-        public string Item { get; set; }
-        public string Location { get; set; }
-    }
+    public string Item { get; set; }
+    public string Location { get; set; }
 }
 

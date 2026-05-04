@@ -1,17 +1,16 @@
 ﻿using MMR.Randomizer.Attributes.Setting;
 
-namespace MMR.Randomizer.Models.Settings
+namespace MMR.Randomizer.Models.Settings;
+
+public enum Character
 {
-    public enum Character
-    {
-        [SettingName("Link (MM)")]
-        LinkMM,
+    [SettingName("Link (MM)")]
+    LinkMM,
 
-        [SettingName("Link (OoT)")]
-        LinkOOT,
+    [SettingName("Link (OoT)")]
+    LinkOOT,
 
-        AdultLink,
+    AdultLink,
 
-        Kafei
-    }
+    Kafei
 }

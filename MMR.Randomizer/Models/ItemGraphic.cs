@@ -1,48 +1,47 @@
 ﻿using System;
 
-namespace MMR.Randomizer.Models
+namespace MMR.Randomizer.Models;
+
+public struct ItemGraphic : IEquatable<ItemGraphic>
 {
-    public struct ItemGraphic : IEquatable<ItemGraphic>
+    /// <summary>
+    /// Object Id used for drawing.
+    /// </summary>
+    public ushort ObjectId { get; }
+
+    /// <summary>
+    /// Graphic index used for drawing.
+    /// </summary>
+    public byte GraphicId { get; }
+
+    public ItemGraphic(ushort objectId, byte graphicId)
     {
-        /// <summary>
-        /// Object Id used for drawing.
-        /// </summary>
-        public ushort ObjectId { get; }
+        this.GraphicId = graphicId;
+        this.ObjectId = objectId;
+    }
 
-        /// <summary>
-        /// Graphic index used for drawing.
-        /// </summary>
-        public byte GraphicId { get; }
+    public override int GetHashCode()
+    {
+        return (((int)GraphicId << 16) | (int)ObjectId);
+    }
 
-        public ItemGraphic(ushort objectId, byte graphicId)
-        {
-            this.GraphicId = graphicId;
-            this.ObjectId = objectId;
-        }
+    public override bool Equals(object obj)
+    {
+        return obj is ItemGraphic && Equals((ItemGraphic)obj);
+    }
 
-        public override int GetHashCode()
-        {
-            return (((int)GraphicId << 16) | (int)ObjectId);
-        }
+    public bool Equals(ItemGraphic g)
+    {
+        return this == g;
+    }
 
-        public override bool Equals(object obj)
-        {
-            return obj is ItemGraphic && Equals((ItemGraphic)obj);
-        }
+    public static bool operator ==(ItemGraphic lhs, ItemGraphic rhs)
+    {
+        return lhs.GraphicId == rhs.GraphicId && lhs.ObjectId == rhs.ObjectId;
+    }
 
-        public bool Equals(ItemGraphic g)
-        {
-            return this == g;
-        }
-
-        public static bool operator ==(ItemGraphic lhs, ItemGraphic rhs)
-        {
-            return lhs.GraphicId == rhs.GraphicId && lhs.ObjectId == rhs.ObjectId;
-        }
-
-        public static bool operator !=(ItemGraphic lhs, ItemGraphic rhs)
-        {
-            return !(lhs == rhs);
-        }
+    public static bool operator !=(ItemGraphic lhs, ItemGraphic rhs)
+    {
+        return !(lhs == rhs);
     }
 }

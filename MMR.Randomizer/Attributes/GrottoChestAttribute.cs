@@ -1,8 +1,7 @@
 ﻿using System;
 
-namespace MMR.Randomizer.Attributes
+namespace MMR.Randomizer.Attributes;
+
+public class GrottoChestAttribute : Attribute
 {
-    public class GrottoChestAttribute : Attribute
-    {
-    }
 }

@@ -2,23 +2,22 @@
 using System.IO;
 using System.Threading;
 
-namespace MMR.CLI
+namespace MMR.CLI;
+
+partial class Program
 {
-    partial class Program
+    public class TextWriterProgressReporter : IProgressReporter
     {
-        public class TextWriterProgressReporter : IProgressReporter
+        private readonly TextWriter _textWriter;
+
+        public TextWriterProgressReporter(TextWriter textWriter)
         {
-            private readonly TextWriter _textWriter;
+            _textWriter = textWriter;
+        }
 
-            public TextWriterProgressReporter(TextWriter textWriter)
-            {
-                _textWriter = textWriter;
-            }
-
-            public void ReportProgress(int percentProgress, string message, CancellationTokenSource ctsItemImportance)
-            {
-                _textWriter.WriteLine($"{percentProgress}% {message}");
-            }
+        public void ReportProgress(int percentProgress, string message, CancellationTokenSource ctsItemImportance)
+        {
+            _textWriter.WriteLine($"{percentProgress}% {message}");
         }
     }
 }

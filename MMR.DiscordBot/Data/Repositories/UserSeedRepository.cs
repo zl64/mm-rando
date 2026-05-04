@@ -1,11 +1,10 @@
 ﻿using MMR.DiscordBot.Data.Entities;
 
-namespace MMR.DiscordBot.Data.Repositories
+namespace MMR.DiscordBot.Data.Repositories;
+
+public class UserSeedRepository : BaseRepository<UserSeedEntity>
 {
-    public class UserSeedRepository : BaseRepository<UserSeedEntity>
+    public UserSeedRepository(ConnectionFactory connectionFactory) : base(connectionFactory)
     {
-        public UserSeedRepository(ConnectionFactory connectionFactory) : base(connectionFactory)
-        {
-        }
     }
 }

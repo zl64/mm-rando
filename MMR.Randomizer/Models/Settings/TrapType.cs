@@ -1,21 +1,20 @@
 ﻿using System.ComponentModel;
 
-namespace MMR.Randomizer.Models.Settings
+namespace MMR.Randomizer.Models.Settings;
+
+public enum TrapType
 {
-    public enum TrapType
-    {
-        None,
+    None,
 
-        [Description("Ice traps freeze the player in ice, dealing damage over a few seconds or voiding Zora.")]
-        Ice,
+    [Description("Ice traps freeze the player in ice, dealing damage over a few seconds or voiding Zora.")]
+    Ice,
 
-        [Description("Bomb traps explode in the player's position, dealing damage and knocking them back.")]
-        Bomb,
+    [Description("Bomb traps explode in the player's position, dealing damage and knocking them back.")]
+    Bomb,
 
-        [Description("Rupoors take 10 rupees from your wallet.")]
-        Rupoor,
+    [Description("Rupoors take 10 rupees from your wallet.")]
+    Rupoor,
 
-        [Description("Literally nothing.")]
-        Nothing,
-    }
+    [Description("Literally nothing.")]
+    Nothing,
 }

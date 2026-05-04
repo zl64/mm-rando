@@ -1,12 +1,11 @@
-﻿namespace MMR.Randomizer.Models.Settings
+﻿namespace MMR.Randomizer.Models.Settings;
+
+public enum BlastMaskCooldown
 {
-    public enum BlastMaskCooldown
-    {
-        Default,
-        Instant,
-        VeryShort,
-        Short,
-        Long,
-        VeryLong
-    }
+    Default,
+    Instant,
+    VeryShort,
+    Short,
+    Long,
+    VeryLong
 }

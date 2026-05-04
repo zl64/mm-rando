@@ -1,15 +1,14 @@
 ﻿using ServiceStack.DataAnnotations;
 using System;
 
-namespace MMR.DiscordBot.Data.Entities
+namespace MMR.DiscordBot.Data.Entities;
+
+public class TournamentSeedEntity
 {
-    public class TournamentSeedEntity
-    {
-        [PrimaryKey]
-        public ulong UserId { get; set; }
+    [PrimaryKey]
+    public ulong UserId { get; set; }
 
-        public DateTime DateTime { get; set; }
+    public DateTime DateTime { get; set; }
 
-        public string Version { get; set; }
-    }
+    public string Version { get; set; }
 }

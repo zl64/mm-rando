@@ -9,171 +9,170 @@ using System.Linq;
 using System.Runtime.Versioning;
 using System.Windows.Forms;
 
-namespace MMR.UI.Forms
+namespace MMR.UI.Forms;
+
+[SupportedOSPlatform("windows")]
+public partial class StartingItemEditForm : Form
 {
-    [SupportedOSPlatform("windows")]
-    public partial class StartingItemEditForm : Form
+    private readonly List<Item> _startingItems;
+    private Func<Item, string> _labelExtractor;
+    private bool updating = false;
+    private const int ItemGroupCount = 7;
+
+    public string ExternalLabel { get; private set; }
+    public List<Item> CustomStartingItemList { get; private set; } = new List<Item>();
+    public string CustomStartingItemListString { get; private set; }
+
+
+    public StartingItemEditForm()
     {
-        private readonly List<Item> _startingItems;
-        private Func<Item, string> _labelExtractor;
-        private bool updating = false;
-        private const int ItemGroupCount = 7;
+        InitializeComponent();
 
-        public string ExternalLabel { get; private set; }
-        public List<Item> CustomStartingItemList { get; private set; } = new List<Item>();
-        public string CustomStartingItemListString { get; private set; }
+        var settingListItemAttribute = typeof(GameplaySettings).GetProperty(nameof(GameplaySettings.CustomStartingItemListString)).GetAttribute<SettingItemListAttribute>();
+        _startingItems = settingListItemAttribute.ItemList.ToList();
+        _labelExtractor = settingListItemAttribute.LabelExtractor;
 
+        PrintToListView();
 
-        public StartingItemEditForm()
+        if (CustomStartingItemList != null)
         {
-            InitializeComponent();
-
-            var settingListItemAttribute = typeof(GameplaySettings).GetProperty(nameof(GameplaySettings.CustomStartingItemListString)).GetAttribute<SettingItemListAttribute>();
-            _startingItems = settingListItemAttribute.ItemList.ToList();
-            _labelExtractor = settingListItemAttribute.LabelExtractor;
-
-            PrintToListView();
-
-            if (CustomStartingItemList != null)
-            {
-                UpdateString(CustomStartingItemList);
-                ExternalLabel = $"{CustomStartingItemList.Count}/{_startingItems.Count} items selected";
-            }
-            else
-            {
-                tStartingItemsString.Text = "--";
-            }
+            UpdateString(CustomStartingItemList);
+            ExternalLabel = $"{CustomStartingItemList.Count}/{_startingItems.Count} items selected";
         }
-
-        private void PrintToListView()
+        else
         {
-            foreach (var item in _startingItems)
-            {
-                if (!_labelExtractor(item).ToLower().Contains(tSearchString.Text.ToLower())) { continue; }
-                lStartingItems.Items.Add(new ListViewItem { Text = _labelExtractor(item), Tag = item, Checked = CustomStartingItemList.Contains(item) });
-            }
+            tStartingItemsString.Text = "--";
         }
+    }
 
-        private void StartingItemEditForm_FormClosing(object sender, FormClosingEventArgs e)
+    private void PrintToListView()
+    {
+        foreach (var item in _startingItems)
         {
-            if (e.CloseReason == CloseReason.UserClosing)
-            {
-                e.Cancel = true;
-                Hide();
-            }
+            if (!_labelExtractor(item).ToLower().Contains(tSearchString.Text.ToLower())) { continue; }
+            lStartingItems.Items.Add(new ListViewItem { Text = _labelExtractor(item), Tag = item, Checked = CustomStartingItemList.Contains(item) });
         }
+    }
 
-        private void UpdateString(List<Item> selections)
+    private void StartingItemEditForm_FormClosing(object sender, FormClosingEventArgs e)
+    {
+        if (e.CloseReason == CloseReason.UserClosing)
         {
-            int[] n = new int[ItemGroupCount];
-            string[] ns = new string[ItemGroupCount];
-            foreach (var item in selections)
-            {
-                var i = _startingItems.IndexOf(item);
-                int j = i / 32;
-                int k = i % 32;
-                n[j] |= (int)(1 << k);
-                ns[j] = Convert.ToString(n[j], 16);
-            }
-            tStartingItemsString.Text = string.Join('-', ns.Reverse());
-            CustomStartingItemListString = tStartingItemsString.Text;
+            e.Cancel = true;
+            Hide();
         }
+    }
 
-        public void UpdateChecks(string c)
+    private void UpdateString(List<Item> selections)
+    {
+        int[] n = new int[ItemGroupCount];
+        string[] ns = new string[ItemGroupCount];
+        foreach (var item in selections)
         {
-            updating = true;
-            try
+            var i = _startingItems.IndexOf(item);
+            int j = i / 32;
+            int k = i % 32;
+            n[j] |= (int)(1 << k);
+            ns[j] = Convert.ToString(n[j], 16);
+        }
+        tStartingItemsString.Text = string.Join('-', ns.Reverse());
+        CustomStartingItemListString = tStartingItemsString.Text;
+    }
+
+    public void UpdateChecks(string c)
+    {
+        updating = true;
+        try
+        {
+            tStartingItemsString.Text = c;
+            CustomStartingItemListString = c;
+            CustomStartingItemList.Clear();
+            string[] v = c.Split('-');
+            int[] vi = new int[ItemGroupCount];
+            if (v.Length != vi.Length)
             {
-                tStartingItemsString.Text = c;
-                CustomStartingItemListString = c;
-                CustomStartingItemList.Clear();
-                string[] v = c.Split('-');
-                int[] vi = new int[ItemGroupCount];
-                if (v.Length != vi.Length)
-                {
-                    ExternalLabel = "Invalid custom starting item string";
-                    return;
-                }
-                for (int i = 0; i < ItemGroupCount; i++)
-                {
-                    if (v[ItemGroupCount - 1 - i] != "")
-                    {
-                        vi[i] = Convert.ToInt32(v[ItemGroupCount - 1 - i], 16);
-                    }
-                }
-                for (int i = 0; i < 32 * ItemGroupCount; i++)
-                {
-                    int j = i / 32;
-                    int k = i % 32;
-                    if (((vi[j] >> k) & 1) > 0)
-                    {
-                        if (i >= ItemUtils.AllLocations().Count())
-                        {
-                            throw new IndexOutOfRangeException();
-                        }
-                        CustomStartingItemList.Add(_startingItems[i]);
-                    }
-                }
-                foreach (ListViewItem l in lStartingItems.Items)
-                {
-                    if (CustomStartingItemList.Contains((Item)l.Tag))
-                    {
-                        l.Checked = true;
-                    }
-                    else
-                    {
-                        l.Checked = false;
-                    }
-                }
-                ExternalLabel = $"{CustomStartingItemList.Count}/{_startingItems.Count} items selected";
-            }
-            catch
-            {
-                CustomStartingItemList.Clear();
                 ExternalLabel = "Invalid custom starting item string";
-            }
-            finally
-            {
-                updating = false;
-            }
-        }
-
-        private void tStartingItemsString_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyData == Keys.Enter)
-            {
-                UpdateChecks(tStartingItemsString.Text);
-            }
-        }
-
-        private void lStartingItems_ItemChecked(object sender, ItemCheckedEventArgs e)
-        {
-            if (updating)
-            {
                 return;
             }
-            updating = true;
-            if (e.Item.Checked)
+            for (int i = 0; i < ItemGroupCount; i++)
             {
-                CustomStartingItemList.Add((Item)e.Item.Tag);
+                if (v[ItemGroupCount - 1 - i] != "")
+                {
+                    vi[i] = Convert.ToInt32(v[ItemGroupCount - 1 - i], 16);
+                }
             }
-            else
+            for (int i = 0; i < 32 * ItemGroupCount; i++)
             {
-                CustomStartingItemList.Remove((Item)e.Item.Tag);
+                int j = i / 32;
+                int k = i % 32;
+                if (((vi[j] >> k) & 1) > 0)
+                {
+                    if (i >= ItemUtils.AllLocations().Count())
+                    {
+                        throw new IndexOutOfRangeException();
+                    }
+                    CustomStartingItemList.Add(_startingItems[i]);
+                }
             }
-            UpdateString(CustomStartingItemList);
+            foreach (ListViewItem l in lStartingItems.Items)
+            {
+                if (CustomStartingItemList.Contains((Item)l.Tag))
+                {
+                    l.Checked = true;
+                }
+                else
+                {
+                    l.Checked = false;
+                }
+            }
+            ExternalLabel = $"{CustomStartingItemList.Count}/{_startingItems.Count} items selected";
+        }
+        catch
+        {
+            CustomStartingItemList.Clear();
+            ExternalLabel = "Invalid custom starting item string";
+        }
+        finally
+        {
             updating = false;
         }
+    }
 
-        private void tSearchString_KeyDown(object sender, KeyEventArgs e)
+    private void tStartingItemsString_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.KeyData == Keys.Enter)
         {
-            if (e.KeyData == Keys.Enter)
-            {
-                updating = true;
-                lStartingItems.Items.Clear();
-                PrintToListView();
-                updating = false;
-            }
+            UpdateChecks(tStartingItemsString.Text);
+        }
+    }
+
+    private void lStartingItems_ItemChecked(object sender, ItemCheckedEventArgs e)
+    {
+        if (updating)
+        {
+            return;
+        }
+        updating = true;
+        if (e.Item.Checked)
+        {
+            CustomStartingItemList.Add((Item)e.Item.Tag);
+        }
+        else
+        {
+            CustomStartingItemList.Remove((Item)e.Item.Tag);
+        }
+        UpdateString(CustomStartingItemList);
+        updating = false;
+    }
+
+    private void tSearchString_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.KeyData == Keys.Enter)
+        {
+            updating = true;
+            lStartingItems.Items.Clear();
+            PrintToListView();
+            updating = false;
         }
     }
 }

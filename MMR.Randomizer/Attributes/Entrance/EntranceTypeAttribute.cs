@@ -2,35 +2,34 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 
-namespace MMR.Randomizer.Attributes.Entrance
+namespace MMR.Randomizer.Attributes.Entrance;
+
+public class EntranceTypeAttribute : Attribute
 {
-    public class EntranceTypeAttribute : Attribute
-    {
-        public EntranceType Type { get; }
-        public ReadOnlyCollection<EntranceType> AdditionalTypes { get; }
+    public EntranceType Type { get; }
+    public ReadOnlyCollection<EntranceType> AdditionalTypes { get; }
 
-        public EntranceTypeAttribute(EntranceType entranceType, params EntranceType[] additionalTypes)
-        {
-            Type = entranceType;
-            AdditionalTypes = additionalTypes.ToList().AsReadOnly();
-        }
-    }
-
-    public enum EntranceType
+    public EntranceTypeAttribute(EntranceType entranceType, params EntranceType[] additionalTypes)
     {
-        Interior,
-        Overworld,
-        InteriorExit,
-        Permanent,
-        Dungeon,
-        Boss,
-        Trial,
-        DungeonExit,
-        TrialExit,
-        OwlWarp,
-        Telescope,
-        Grotto,
-        VoidRespawn,
-        FairyFountain,
+        Type = entranceType;
+        AdditionalTypes = additionalTypes.ToList().AsReadOnly();
     }
+}
+
+public enum EntranceType
+{
+    Interior,
+    Overworld,
+    InteriorExit,
+    Permanent,
+    Dungeon,
+    Boss,
+    Trial,
+    DungeonExit,
+    TrialExit,
+    OwlWarp,
+    Telescope,
+    Grotto,
+    VoidRespawn,
+    FairyFountain,
 }

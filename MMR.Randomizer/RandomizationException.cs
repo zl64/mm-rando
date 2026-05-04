@@ -1,11 +1,10 @@
 ﻿using System;
 
-namespace MMR.Randomizer
+namespace MMR.Randomizer;
+
+public class RandomizationException : Exception
 {
-    public class RandomizationException : Exception
+    public RandomizationException(string message) : base(message)
     {
-        public RandomizationException(string message) : base(message)
-        {
-        }
     }
 }

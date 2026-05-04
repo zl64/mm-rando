@@ -1,14 +1,13 @@
 ﻿using System;
 
-namespace MMR.Randomizer.Attributes
-{
-    public class IdAttribute : Attribute
-    {
-        public byte Id { get; }
+namespace MMR.Randomizer.Attributes;
 
-        public IdAttribute(byte id)
-        {
-            Id = id;
-        }
+public class IdAttribute : Attribute
+{
+    public byte Id { get; }
+
+    public IdAttribute(byte id)
+    {
+        Id = id;
     }
 }

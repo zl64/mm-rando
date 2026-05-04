@@ -1,12 +1,11 @@
-﻿namespace MMR.Randomizer.Models.Settings
+﻿namespace MMR.Randomizer.Models.Settings;
+
+public enum ClockSpeed
 {
-    public enum ClockSpeed
-    {
-        Default,
-        VerySlow,
-        Slow,
-        Fast,
-        VeryFast,
-        SuperFast
-    }
+    Default,
+    VerySlow,
+    Slow,
+    Fast,
+    VeryFast,
+    SuperFast
 }

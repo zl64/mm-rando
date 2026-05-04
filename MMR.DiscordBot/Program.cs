@@ -10,86 +10,85 @@ using MMR.DiscordBot.Services;
 using Discord.Commands;
 using MMR.DiscordBot.Data.Repositories;
 
-namespace MMR.DiscordBot
+namespace MMR.DiscordBot;
+
+class Program
 {
-    class Program
+    private const string MMR_DISCORDBOT_TOKEN = "MMR_DiscordBot_Token";
+
+    private readonly string _discordBotToken;
+
+    static int Main(string[] args)
     {
-        private const string MMR_DISCORDBOT_TOKEN = "MMR_DiscordBot_Token";
+        return new Program().MainAsync().GetAwaiter().GetResult();
+    }
 
-        private readonly string _discordBotToken;
+    public Program()
+    {
+        _discordBotToken = Environment.GetEnvironmentVariable(MMR_DISCORDBOT_TOKEN);
+    }
 
-        static int Main(string[] args)
+    public async Task<int> MainAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_discordBotToken))
         {
-            return new Program().MainAsync().GetAwaiter().GetResult();
+            Console.Error.WriteLine($"Environment Variable '{MMR_DISCORDBOT_TOKEN}' is missing.");
+            return -1;
         }
 
-        public Program()
+        using (var services = ConfigureServices())
         {
-            _discordBotToken = Environment.GetEnvironmentVariable(MMR_DISCORDBOT_TOKEN);
+            var client = services.GetRequiredService<DiscordSocketClient>();
+
+            client.Log += LogAsync;
+            services.GetRequiredService<CommandService>().Log += LogAsync;
+
+            // Tokens should be considered secret data and never hard-coded.
+            // We can read from the environment variable to avoid hardcoding.
+            await client.LoginAsync(TokenType.Bot, _discordBotToken);
+            await client.StartAsync();
+
+            // Here we initialize the logic required to register our commands.
+            await services.GetRequiredService<CommandHandlingService>().InitializeAsync();
+
+            await Task.Delay(Timeout.Infinite);
         }
 
-        public async Task<int> MainAsync()
+        // Block the program until it is closed.
+        await Task.Delay(-1);
+        return 0;
+    }
+
+    private Task LogAsync(LogMessage log)
+    {
+        Console.WriteLine(log.ToString());
+        return Task.CompletedTask;
+    }
+
+    private ServiceProvider ConfigureServices()
+    {
+        var config = new DiscordSocketConfig()
         {
-            if (string.IsNullOrWhiteSpace(_discordBotToken))
-            {
-                Console.Error.WriteLine($"Environment Variable '{MMR_DISCORDBOT_TOKEN}' is missing.");
-                return -1;
-            }
+            AlwaysDownloadUsers = true,
+            GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers
+        };
 
-            using (var services = ConfigureServices())
-            {
-                var client = services.GetRequiredService<DiscordSocketClient>();
-
-                client.Log += LogAsync;
-                services.GetRequiredService<CommandService>().Log += LogAsync;
-
-                // Tokens should be considered secret data and never hard-coded.
-                // We can read from the environment variable to avoid hardcoding.
-                await client.LoginAsync(TokenType.Bot, _discordBotToken);
-                await client.StartAsync();
-
-                // Here we initialize the logic required to register our commands.
-                await services.GetRequiredService<CommandHandlingService>().InitializeAsync();
-
-                await Task.Delay(Timeout.Infinite);
-            }
-
-            // Block the program until it is closed.
-            await Task.Delay(-1);
-            return 0;
-        }
-
-        private Task LogAsync(LogMessage log)
-        {
-            Console.WriteLine(log.ToString());
-            return Task.CompletedTask;
-        }
-
-        private ServiceProvider ConfigureServices()
-        {
-            var config = new DiscordSocketConfig()
-            {
-                AlwaysDownloadUsers = true,
-                GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers
-            };
-
-            return new ServiceCollection()
-                .AddSingleton<MMRReleaseService>()
-                .AddSingleton<MMRBetaService>()
-                .AddSingleton<MMRTournament1Service>()
-                .AddSingleton<MMRTournament2Service>()
-                .AddSingleton(config)
-                .AddSingleton<DiscordSocketClient>()
-                .AddSingleton<CommandService>()
-                .AddSingleton<CommandHandlingService>()
-                .AddSingleton<HttpClient>()
-                .AddSingleton<UserSeedRepository>()
-                .AddSingleton<GuildModRepository>()
-                .AddSingleton<TournamentChannelRepository>()
-                .AddSingleton<TournamentSeedRepository>()
-                .AddSingleton<LogChannelRepository>()
-                .AddSingleton<ConnectionFactory>()
-                .BuildServiceProvider();
-        }
+        return new ServiceCollection()
+            .AddSingleton<MMRReleaseService>()
+            .AddSingleton<MMRBetaService>()
+            .AddSingleton<MMRTournament1Service>()
+            .AddSingleton<MMRTournament2Service>()
+            .AddSingleton(config)
+            .AddSingleton<DiscordSocketClient>()
+            .AddSingleton<CommandService>()
+            .AddSingleton<CommandHandlingService>()
+            .AddSingleton<HttpClient>()
+            .AddSingleton<UserSeedRepository>()
+            .AddSingleton<GuildModRepository>()
+            .AddSingleton<TournamentChannelRepository>()
+            .AddSingleton<TournamentSeedRepository>()
+            .AddSingleton<LogChannelRepository>()
+            .AddSingleton<ConnectionFactory>()
+            .BuildServiceProvider();
     }
 }

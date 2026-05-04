@@ -21,780 +21,778 @@ using System.Text.RegularExpressions;
 using MMR.Randomizer.Attributes.Setting;
 using System.ComponentModel.DataAnnotations;
 
-namespace MMR.CLI
+namespace MMR.CLI;
+
+public class SettingValue
 {
-    public class SettingValue
-    {
-        public string Label { get; set; }
-        public string Tooltip { get; set; }
-        public string Value { get; set; }
-    }
+    public string Label { get; set; }
+    public string Tooltip { get; set; }
+    public string Value { get; set; }
+}
 
-    public class SettingItemListItem
-    {
-        public string Label { get; set; }
-        public int? Index { get; set; }
-        public string Value { get; set; }
-        public Dictionary<string, object> AdditionalInformation { get; set; }
-    }
+public class SettingItemListItem
+{
+    public string Label { get; set; }
+    public int? Index { get; set; }
+    public string Value { get; set; }
+    public Dictionary<string, object> AdditionalInformation { get; set; }
+}
 
-    public class SettingDictionary<TKey, TValue>
-    {
-        public string KeySettingPath { get; set; }
-        public Dictionary<TKey, TValue> Values { get; set; }
-    }
+public class SettingDictionary<TKey, TValue>
+{
+    public string KeySettingPath { get; set; }
+    public Dictionary<TKey, TValue> Values { get; set; }
+}
 
-    public class SettingProperty
-    {
-        public string Name { get; set; }
-        public string DataType { get; set; }
-        public List<SettingItemListItem> ItemList { get; set; }
-    }
+public class SettingProperty
+{
+    public string Name { get; set; }
+    public string DataType { get; set; }
+    public List<SettingItemListItem> ItemList { get; set; }
+}
 
-    public class SettingConfig
-    {
-        public string Path { get; set; }
-        public string DataType { get; set; }
-        public bool Nullable { get; set; }
-        public string Label { get; set; }
-        public string Tooltip { get; set; }
-        public object DefaultValue { get; set; }
-        public List<SettingProperty> Properties { get; set; }
-        public List<SettingValue> Keys { get; set; }
-        public List<SettingValue> Values { get; set; }
-        public List<SettingItemListItem> ItemList { get; set; }
-        public string ValueType { get; set; }
-        public object MinValue { get; set; }
-        public object MaxValue { get; set; }
-        public Dictionary<object, List<string>> SettingExcludes { get; set; }
-        public SettingDictionary<LogicMode, Dictionary<string, List<SettingValue>>> TrickInfo { get; set; }
-        public SettingDictionary<LogicMode, bool> InLogic { get; set; }
-        public List<string> Index { get; set; }
-    }
+public class SettingConfig
+{
+    public string Path { get; set; }
+    public string DataType { get; set; }
+    public bool Nullable { get; set; }
+    public string Label { get; set; }
+    public string Tooltip { get; set; }
+    public object DefaultValue { get; set; }
+    public List<SettingProperty> Properties { get; set; }
+    public List<SettingValue> Keys { get; set; }
+    public List<SettingValue> Values { get; set; }
+    public List<SettingItemListItem> ItemList { get; set; }
+    public string ValueType { get; set; }
+    public object MinValue { get; set; }
+    public object MaxValue { get; set; }
+    public Dictionary<object, List<string>> SettingExcludes { get; set; }
+    public SettingDictionary<LogicMode, Dictionary<string, List<SettingValue>>> TrickInfo { get; set; }
+    public SettingDictionary<LogicMode, bool> InLogic { get; set; }
+    public List<string> Index { get; set; }
+}
 
-    partial class Program
+partial class Program
+{
+    static int Main(string[] args)
     {
-        static int Main(string[] args)
+        Dictionary<string, List<string>> argsDictionary;
+        if (args.Length == 1 && File.Exists(args[0]) && Path.GetExtension(args[0]) == ".mmr")
         {
-            Dictionary<string, List<string>> argsDictionary;
-            if (args.Length == 1 && File.Exists(args[0]) && Path.GetExtension(args[0]) == ".mmr")
+            argsDictionary = new Dictionary<string, List<string>>
             {
-                argsDictionary = new Dictionary<string, List<string>>
-                {
-                    { "-inputpatch", args.ToList() }
-                };
+                { "-inputpatch", args.ToList() }
+            };
+        }
+        else
+        {
+            argsDictionary = DictionaryHelper.FromProgramArguments(args);
+        }
+        if (argsDictionary.ContainsKey("-settingsConfig"))
+        {
+            var logicModes = new List<LogicMode> { LogicMode.Casual, LogicMode.Glitched };
+            var userLogicFileName = argsDictionary.GetValueOrDefault("-settingsConfig")?.SingleOrDefault();
+            if (userLogicFileName != default)
+            {
+                logicModes.Add(LogicMode.UserLogic);
             }
-            else
+
+            var itemLists = logicModes.ToDictionary(logicMode => logicMode, logicMode =>
             {
-                argsDictionary = DictionaryHelper.FromProgramArguments(args);
-            }
-            if (argsDictionary.ContainsKey("-settingsConfig"))
-            {
-                var logicModes = new List<LogicMode> { LogicMode.Casual, LogicMode.Glitched };
-                var userLogicFileName = argsDictionary.GetValueOrDefault("-settingsConfig")?.SingleOrDefault();
-                if (userLogicFileName != default)
+                var data = LogicUtils.ReadRulesetFromResources(logicMode, userLogicFileName);
+                try
                 {
-                    logicModes.Add(LogicMode.UserLogic);
+                    return LogicUtils.PopulateItemListFromLogicData(data);
                 }
-
-                var itemLists = logicModes.ToDictionary(logicMode => logicMode, logicMode =>
+                catch (Exception)
                 {
-                    var data = LogicUtils.ReadRulesetFromResources(logicMode, userLogicFileName);
-                    try
-                    {
-                        return LogicUtils.PopulateItemListFromLogicData(data);
-                    }
-                    catch (Exception)
-                    {
-                        throw new Exception("Error reading logic.");
-                    }
-                });
+                    throw new Exception("Error reading logic.");
+                }
+            });
 
-                var path = new Stack<string>();
-                var settings = new List<SettingConfig>();
-                void processType(object defaultValue)
+            var path = new Stack<string>();
+            var settings = new List<SettingConfig>();
+            void processType(object defaultValue)
+            {
+                var declaringType = defaultValue.GetType();
+                foreach (var property in declaringType.GetProperties())
                 {
-                    var declaringType = defaultValue.GetType();
-                    foreach (var property in declaringType.GetProperties())
+                    if (!property.CanWrite)
                     {
-                        if (!property.CanWrite)
+                        continue;
+                    }
+                    if (property.HasAttribute<JsonIgnoreAttribute>())
+                    {
+                        continue;
+                    }
+                    if (property.HasAttribute<SettingIgnoreAttribute>())
+                    {
+                        continue;
+                    }
+                    path.Push(property.Name);
+                    var rangeAttribute = property.GetAttribute<RangeAttribute>();
+                    var relativePath = string.Join(".", path.Skip(1).Reverse());
+                    SettingConfig settingConfig = new SettingConfig
+                    {
+                        Path = string.Join(".", path.Reverse()),
+                        Label = property.GetAttribute<SettingNameAttribute>()?.Name ?? property.Name.AddSpaces(),
+                        Tooltip = property.GetAttribute<DescriptionAttribute>()?.Description,
+                        MinValue = rangeAttribute?.Minimum,
+                        MaxValue = rangeAttribute?.Maximum,
+                        SettingExcludes = property.HasAttribute<SettingExcludeAttribute>()
+                            ? property.GetAttributes<SettingExcludeAttribute>().ToDictionary(attr => attr.PropertyValue, attr => attr.SettingPaths.Select(p => relativePath + "." + p).ToList())
+                            : null,
+                        InLogic = property.GetAttribute<SettingTabAttribute>()?.TabType == SettingTabAttribute.Type.Gimmicks ? new SettingDictionary<LogicMode, bool>
                         {
-                            continue;
-                        }
-                        if (property.HasAttribute<JsonIgnoreAttribute>())
-                        {
-                            continue;
-                        }
-                        if (property.HasAttribute<SettingIgnoreAttribute>())
-                        {
-                            continue;
-                        }
-                        path.Push(property.Name);
-                        var rangeAttribute = property.GetAttribute<RangeAttribute>();
-                        var relativePath = string.Join(".", path.Skip(1).Reverse());
-                        SettingConfig settingConfig = new SettingConfig
-                        {
-                            Path = string.Join(".", path.Reverse()),
-                            Label = property.GetAttribute<SettingNameAttribute>()?.Name ?? property.Name.AddSpaces(),
-                            Tooltip = property.GetAttribute<DescriptionAttribute>()?.Description,
-                            MinValue = rangeAttribute?.Minimum,
-                            MaxValue = rangeAttribute?.Maximum,
-                            SettingExcludes = property.HasAttribute<SettingExcludeAttribute>()
-                                ? property.GetAttributes<SettingExcludeAttribute>().ToDictionary(attr => attr.PropertyValue, attr => attr.SettingPaths.Select(p => relativePath + "." + p).ToList())
-                                : null,
-                            InLogic = property.GetAttribute<SettingTabAttribute>()?.TabType == SettingTabAttribute.Type.Gimmicks ? new SettingDictionary<LogicMode, bool>
+                            KeySettingPath = $"{nameof(GameplaySettings)}.{nameof(GameplaySettings.LogicMode)}",
+                            Values = itemLists.ToDictionary(kvp => kvp.Key, kvp =>
                             {
-                                KeySettingPath = $"{nameof(GameplaySettings)}.{nameof(GameplaySettings.LogicMode)}",
-                                Values = itemLists.ToDictionary(kvp => kvp.Key, kvp =>
+                                return kvp.Value.Any(io => !string.IsNullOrWhiteSpace(io.SettingExpression) && LogicUtils.ParseSettingExpression(io.SettingExpression).VisitsMember(declaringType, property.Name));
+                            })
+                    } : null,
+                    };
+                    if (settingConfig.Path == $"{nameof(GameplaySettings)}.{nameof(GameplaySettings.EnabledTricks)}")
+                    {
+                        settingConfig.TrickInfo = new SettingDictionary<LogicMode, Dictionary<string, List<SettingValue>>>
+                        {
+                            KeySettingPath = $"{nameof(GameplaySettings)}.{nameof(GameplaySettings.LogicMode)}",
+                            Values = itemLists.ToDictionary(kvp => kvp.Key, kvp =>
+                            {
+                                var tricks = kvp.Value.Where(io => io.IsTrick);
+                                var categories = tricks.Select(io => string.IsNullOrWhiteSpace(io.TrickCategory) ? "Misc" : io.TrickCategory).Distinct().ToList();
+
+                                foreach (var i in tricks)
                                 {
-                                    return kvp.Value.Any(io => !string.IsNullOrWhiteSpace(io.SettingExpression) && LogicUtils.ParseSettingExpression(io.SettingExpression).VisitsMember(declaringType, property.Name));
-                                })
-                        } : null,
+                                    i.TrickCategory = string.IsNullOrWhiteSpace(i.TrickCategory) ? "Misc" : i.TrickCategory;
+                                }
+
+                                return tricks.GroupBy(io => io.TrickCategory).ToDictionary(g => g.Key, g => g.Select(io => new SettingValue
+                                {
+                                    Label = io.Name,
+                                    Tooltip = io.TrickTooltip,
+                                    Value = io.TrickUrl,
+                                }).ToList());
+                            })
                         };
-                        if (settingConfig.Path == $"{nameof(GameplaySettings)}.{nameof(GameplaySettings.EnabledTricks)}")
+                    }
+
+                    var settingIndexLabels = property.GetAttribute<SettingIndexValuesAttribute>();
+                    if (settingIndexLabels != null)
+                    {
+                        settingConfig.Index = settingIndexLabels.Labels;
+                    }
+
+                    var settingTypeAttribute = property.GetAttribute<SettingTypeAttribute>();
+                    var settingItemListAttribute = property.GetAttribute<SettingItemListAttribute>();
+                    if (settingConfig.Path == $"{nameof(GameplaySettings)}.{nameof(GameplaySettings.RandomStartingItemGroups)}")
+                    {
+                        settingItemListAttribute = typeof(RandomStartingItemGroup).GetProperty(nameof(RandomStartingItemGroup.Items)).GetAttribute<SettingItemListAttribute>();
+                        settingConfig.ItemList = settingItemListAttribute.ItemList.Select(item =>
                         {
-                            settingConfig.TrickInfo = new SettingDictionary<LogicMode, Dictionary<string, List<SettingValue>>>
+                            var itemListItem = new SettingItemListItem
                             {
-                                KeySettingPath = $"{nameof(GameplaySettings)}.{nameof(GameplaySettings.LogicMode)}",
-                                Values = itemLists.ToDictionary(kvp => kvp.Key, kvp =>
-                                {
-                                    var tricks = kvp.Value.Where(io => io.IsTrick);
-                                    var categories = tricks.Select(io => string.IsNullOrWhiteSpace(io.TrickCategory) ? "Misc" : io.TrickCategory).Distinct().ToList();
-
-                                    foreach (var i in tricks)
-                                    {
-                                        i.TrickCategory = string.IsNullOrWhiteSpace(i.TrickCategory) ? "Misc" : i.TrickCategory;
-                                    }
-
-                                    return tricks.GroupBy(io => io.TrickCategory).ToDictionary(g => g.Key, g => g.Select(io => new SettingValue
-                                    {
-                                        Label = io.Name,
-                                        Tooltip = io.TrickTooltip,
-                                        Value = io.TrickUrl,
-                                    }).ToList());
-                                })
+                                Value = item.ToString(),
+                                Label = settingItemListAttribute.LabelExtractor(item),
+                                AdditionalInformation = settingItemListAttribute.AdditionalInformationExtractors.ToDictionary(kvp => kvp.Key, kvp => kvp.Value(item)),
                             };
-                        }
-
-                        var settingIndexLabels = property.GetAttribute<SettingIndexValuesAttribute>();
-                        if (settingIndexLabels != null)
+                            return itemListItem;
+                        }).ToList();
+                    }
+                    if (settingTypeAttribute != null)
+                    {
+                        settingConfig.DataType = property.GetAttribute<SettingTypeAttribute>().Type;
+                        if (settingTypeAttribute.Values != null)
                         {
-                            settingConfig.Index = settingIndexLabels.Labels;
-                        }
-
-                        var settingTypeAttribute = property.GetAttribute<SettingTypeAttribute>();
-                        var settingItemListAttribute = property.GetAttribute<SettingItemListAttribute>();
-                        if (settingConfig.Path == $"{nameof(GameplaySettings)}.{nameof(GameplaySettings.RandomStartingItemGroups)}")
-                        {
-                            settingItemListAttribute = typeof(RandomStartingItemGroup).GetProperty(nameof(RandomStartingItemGroup.Items)).GetAttribute<SettingItemListAttribute>();
-                            settingConfig.ItemList = settingItemListAttribute.ItemList.Select(item =>
+                            settingConfig.Values = settingTypeAttribute.Values.Select(val => new SettingValue
                             {
-                                var itemListItem = new SettingItemListItem
-                                {
-                                    Value = item.ToString(),
-                                    Label = settingItemListAttribute.LabelExtractor(item),
-                                    AdditionalInformation = settingItemListAttribute.AdditionalInformationExtractors.ToDictionary(kvp => kvp.Key, kvp => kvp.Value(item)),
-                                };
-                                return itemListItem;
+                                Label = val,
+                                Value = val,
                             }).ToList();
                         }
-                        if (settingTypeAttribute != null)
+                    }
+                    else if (settingItemListAttribute != null && property.PropertyType == typeof(string))
+                    {
+                        settingConfig.DataType = "ItemList";
+                        settingConfig.ItemList = settingItemListAttribute.ItemList.Select((item, index) =>
                         {
-                            settingConfig.DataType = property.GetAttribute<SettingTypeAttribute>().Type;
-                            if (settingTypeAttribute.Values != null)
+                            var itemListItem = new SettingItemListItem
                             {
-                                settingConfig.Values = settingTypeAttribute.Values.Select(val => new SettingValue
+                                Index = index,
+                                Label = settingItemListAttribute.LabelExtractor(item),
+                                AdditionalInformation = settingItemListAttribute.AdditionalInformationExtractors.ToDictionary(kvp => kvp.Key, kvp => kvp.Value(item)),
+                            };
+                            return itemListItem;
+                        }).ToList();
+                    }
+                    else if (property.PropertyType == typeof(string) || property.PropertyType == typeof(decimal) || property.PropertyType == typeof(Color) || property.PropertyType.IsPrimitive)
+                    {
+                        settingConfig.DataType = property.PropertyType.Name;
+                    }
+                    else if (property.PropertyType.IsGenericType || property.PropertyType.IsArray)
+                    {
+                        if (property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+                        {
+                            var keyType = property.PropertyType.GetGenericArguments()[0];
+                            var valueType = property.PropertyType.GetGenericArguments()[1];
+                            if (keyType == typeof(string))
+                            {
+
+                            }
+                            else if (keyType.IsEnum)
+                            {
+                                settingConfig.DataType = "Dictionary";
+                                settingConfig.Keys = Enum.GetValues(keyType).Cast<Enum>().Where(v => keyType == typeof(TransformationForm) ? true : Convert.ToInt32(v) > 0).Select(key => new SettingValue
                                 {
-                                    Label = val,
-                                    Value = val,
+                                    Value = key.ToString(),
+                                    Label = key.GetAttribute<SettingNameAttribute>()?.Name ?? key.ToString().AddSpaces(),
+                                    Tooltip = key.GetAttribute<DescriptionAttribute>()?.Description,
                                 }).ToList();
-                            }
-                        }
-                        else if (settingItemListAttribute != null && property.PropertyType == typeof(string))
-                        {
-                            settingConfig.DataType = "ItemList";
-                            settingConfig.ItemList = settingItemListAttribute.ItemList.Select((item, index) =>
-                            {
-                                var itemListItem = new SettingItemListItem
+                                if (valueType.IsEnum)
                                 {
-                                    Index = index,
-                                    Label = settingItemListAttribute.LabelExtractor(item),
-                                    AdditionalInformation = settingItemListAttribute.AdditionalInformationExtractors.ToDictionary(kvp => kvp.Key, kvp => kvp.Value(item)),
-                                };
-                                return itemListItem;
-                            }).ToList();
-                        }
-                        else if (property.PropertyType == typeof(string) || property.PropertyType == typeof(decimal) || property.PropertyType == typeof(Color) || property.PropertyType.IsPrimitive)
-                        {
-                            settingConfig.DataType = property.PropertyType.Name;
-                        }
-                        else if (property.PropertyType.IsGenericType || property.PropertyType.IsArray)
-                        {
-                            if (property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(Dictionary<,>))
-                            {
-                                var keyType = property.PropertyType.GetGenericArguments()[0];
-                                var valueType = property.PropertyType.GetGenericArguments()[1];
-                                if (keyType == typeof(string))
-                                {
-
-                                }
-                                else if (keyType.IsEnum)
-                                {
-                                    settingConfig.DataType = "Dictionary";
-                                    settingConfig.Keys = Enum.GetValues(keyType).Cast<Enum>().Where(v => keyType == typeof(TransformationForm) ? true : Convert.ToInt32(v) > 0).Select(key => new SettingValue
-                                    {
-                                        Value = key.ToString(),
-                                        Label = key.GetAttribute<SettingNameAttribute>()?.Name ?? key.ToString().AddSpaces(),
-                                        Tooltip = key.GetAttribute<DescriptionAttribute>()?.Description,
-                                    }).ToList();
-                                    if (valueType.IsEnum)
-                                    {
-                                        settingConfig.ValueType = "Enum";
-                                        settingConfig.Values = Enum.GetValues(valueType).Cast<Enum>().Select(v => new SettingValue
-                                        {
-                                            Value = v.ToString(),
-                                            Label = v.GetAttribute<SettingNameAttribute>()?.Name ?? v.ToString().AddSpaces(),
-                                        }).ToList();
-                                    }
-                                    else
-                                    {
-                                        settingConfig.ValueType = valueType.Name;
-                                    }
-                                }
-                            }
-                            else if (property.PropertyType.IsAssignableTo(typeof(IEnumerable)) || property.PropertyType.IsArray)
-                            {
-                                var itemType = property.PropertyType.IsArray ? property.PropertyType.GetElementType() : property.PropertyType.GetGenericArguments()[0];
-                                if (itemType == typeof(string) || itemType == typeof(decimal) || itemType.IsPrimitive)
-                                {
-                                    settingConfig.DataType = $"{itemType.Name}[]";
-                                }
-                                else if (itemType.IsEnum)
-                                {
-                                    settingConfig.DataType = "Enum[]";
-                                    settingConfig.Values = Enum.GetValues(itemType).Cast<Enum>().Where(v => Convert.ToInt32(v) > 0 || (v.ToString() != "None" && v.ToString() != "Fake")).Select(v => new SettingValue
+                                    settingConfig.ValueType = "Enum";
+                                    settingConfig.Values = Enum.GetValues(valueType).Cast<Enum>().Select(v => new SettingValue
                                     {
                                         Value = v.ToString(),
                                         Label = v.GetAttribute<SettingNameAttribute>()?.Name ?? v.ToString().AddSpaces(),
-                                        Tooltip = v.GetAttribute<DescriptionAttribute>()?.Description,
-                                    }).ToList();
-                                }
-                                else if (itemType.IsGenericType)
-                                {
-                                    if (itemType.IsAssignableTo(typeof(IEnumerable)))
-                                    {
-                                        var itemType2 = itemType.GetGenericArguments()[0];
-                                        if (itemType2 == typeof(string))
-                                        {
-                                            settingConfig.DataType = "String[][]";
-                                        }
-                                        else if (itemType2.IsEnum)
-                                        {
-                                            if (settingItemListAttribute != null)
-                                            {
-                                                settingConfig.DataType = "Item[][]";
-                                                settingConfig.ItemList = settingItemListAttribute.ItemList.Select((item, index) =>
-                                                {
-                                                    var itemListItem = new SettingItemListItem
-                                                    {
-                                                        Value = item.ToString(),
-                                                        Label = settingItemListAttribute.LabelExtractor(item),
-                                                        AdditionalInformation = settingItemListAttribute.AdditionalInformationExtractors.ToDictionary(kvp => kvp.Key, kvp => kvp.Value(item)),
-                                                    };
-                                                    return itemListItem;
-                                                }).ToList();
-                                            }
-                                            else
-                                            {
-                                                //settingConfig.DataType = "Enum[][]";
-                                                //settingConfig.Values = Enum.GetNames(itemType2).ToList();
-                                            }
-                                        }
-                                        
-                                    }
-                                }
-                                else if (itemType.IsClass)
-                                {
-                                    settingConfig.DataType = "object[]";
-                                    settingConfig.Properties = itemType.GetProperties().Select(p =>
-                                    {
-                                        var settingItemListAttribute = p.GetAttribute<SettingItemListAttribute>();
-                                        if (settingItemListAttribute != null)
-                                        {
-                                            return new SettingProperty
-                                            {
-                                                Name = p.Name,
-                                                DataType = "Item[]",
-                                                ItemList = settingItemListAttribute.ItemList.Select(item =>
-                                                {
-                                                    var itemListItem = new SettingItemListItem
-                                                    {
-                                                        Label = settingItemListAttribute.LabelExtractor(item),
-                                                        Value = item.ToString(),
-                                                        AdditionalInformation = settingItemListAttribute.AdditionalInformationExtractors.ToDictionary(kvp => kvp.Key, kvp => kvp.Value(item)),
-                                                    };
-                                                    return itemListItem;
-                                                }).ToList()
-                                            };
-                                        }
-                                        return new SettingProperty
-                                        {
-                                            Name = p.Name,
-                                            DataType = p.PropertyType.Name,
-                                        };
                                     }).ToList();
                                 }
                                 else
                                 {
-
+                                    settingConfig.ValueType = valueType.Name;
                                 }
                             }
-                            else if (Nullable.GetUnderlyingType(property.PropertyType) != null)
+                        }
+                        else if (property.PropertyType.IsAssignableTo(typeof(IEnumerable)) || property.PropertyType.IsArray)
+                        {
+                            var itemType = property.PropertyType.IsArray ? property.PropertyType.GetElementType() : property.PropertyType.GetGenericArguments()[0];
+                            if (itemType == typeof(string) || itemType == typeof(decimal) || itemType.IsPrimitive)
                             {
-                                settingConfig.DataType = Nullable.GetUnderlyingType(property.PropertyType).Name;
-                                settingConfig.Nullable = true;
+                                settingConfig.DataType = $"{itemType.Name}[]";
+                            }
+                            else if (itemType.IsEnum)
+                            {
+                                settingConfig.DataType = "Enum[]";
+                                settingConfig.Values = Enum.GetValues(itemType).Cast<Enum>().Where(v => Convert.ToInt32(v) > 0 || (v.ToString() != "None" && v.ToString() != "Fake")).Select(v => new SettingValue
+                                {
+                                    Value = v.ToString(),
+                                    Label = v.GetAttribute<SettingNameAttribute>()?.Name ?? v.ToString().AddSpaces(),
+                                    Tooltip = v.GetAttribute<DescriptionAttribute>()?.Description,
+                                }).ToList();
+                            }
+                            else if (itemType.IsGenericType)
+                            {
+                                if (itemType.IsAssignableTo(typeof(IEnumerable)))
+                                {
+                                    var itemType2 = itemType.GetGenericArguments()[0];
+                                    if (itemType2 == typeof(string))
+                                    {
+                                        settingConfig.DataType = "String[][]";
+                                    }
+                                    else if (itemType2.IsEnum)
+                                    {
+                                        if (settingItemListAttribute != null)
+                                        {
+                                            settingConfig.DataType = "Item[][]";
+                                            settingConfig.ItemList = settingItemListAttribute.ItemList.Select((item, index) =>
+                                            {
+                                                var itemListItem = new SettingItemListItem
+                                                {
+                                                    Value = item.ToString(),
+                                                    Label = settingItemListAttribute.LabelExtractor(item),
+                                                    AdditionalInformation = settingItemListAttribute.AdditionalInformationExtractors.ToDictionary(kvp => kvp.Key, kvp => kvp.Value(item)),
+                                                };
+                                                return itemListItem;
+                                            }).ToList();
+                                        }
+                                        else
+                                        {
+                                            //settingConfig.DataType = "Enum[][]";
+                                            //settingConfig.Values = Enum.GetNames(itemType2).ToList();
+                                        }
+                                    }
+                                }
+                            }
+                            else if (itemType.IsClass)
+                            {
+                                settingConfig.DataType = "object[]";
+                                settingConfig.Properties = itemType.GetProperties().Select(p =>
+                                {
+                                    var settingItemListAttribute = p.GetAttribute<SettingItemListAttribute>();
+                                    if (settingItemListAttribute != null)
+                                    {
+                                        return new SettingProperty
+                                        {
+                                            Name = p.Name,
+                                            DataType = "Item[]",
+                                            ItemList = settingItemListAttribute.ItemList.Select(item =>
+                                            {
+                                                var itemListItem = new SettingItemListItem
+                                                {
+                                                    Label = settingItemListAttribute.LabelExtractor(item),
+                                                    Value = item.ToString(),
+                                                    AdditionalInformation = settingItemListAttribute.AdditionalInformationExtractors.ToDictionary(kvp => kvp.Key, kvp => kvp.Value(item)),
+                                                };
+                                                return itemListItem;
+                                            }).ToList()
+                                        };
+                                    }
+                                    return new SettingProperty
+                                    {
+                                        Name = p.Name,
+                                        DataType = p.PropertyType.Name,
+                                    };
+                                }).ToList();
+                            }
+                            else
+                            {
+
                             }
                         }
-                        else if (property.PropertyType.IsEnum)
+                        else if (Nullable.GetUnderlyingType(property.PropertyType) != null)
                         {
-                            var isFlagsEnum = property.PropertyType.HasAttribute<FlagsAttribute>();
-                            settingConfig.DataType = isFlagsEnum ? "FlagEnum" : "Enum";
-                            settingConfig.Values = Enum.GetValues(property.PropertyType).Cast<Enum>().Select(v => new SettingValue
-                            {
-                                Value = v.ToString(),
-                                Label = isFlagsEnum && Convert.ToInt32(v) == 0 ? null : v.GetAttribute<SettingNameAttribute>()?.Name ?? v.ToString().AddSpaces(),
-                                Tooltip = v.GetAttribute<DescriptionAttribute>()?.Description,
-                            }).ToList();
+                            settingConfig.DataType = Nullable.GetUnderlyingType(property.PropertyType).Name;
+                            settingConfig.Nullable = true;
                         }
-                        else if (property.PropertyType.IsClass || property.PropertyType.IsValueType)
-                        {
-                            var propertyValue = property.GetValue(defaultValue);
-                            if (propertyValue == null)
-                            {
-                                propertyValue = Activator.CreateInstance(property.PropertyType);
-                            }
-                            processType(propertyValue);
-                            settingConfig = null;
-                        }
-                        if (settingConfig != null)
-                        {
-                            settingConfig.DefaultValue = property.GetValue(defaultValue);
-                            if (settingConfig.DefaultValue == null)
-                            {
-                                settingConfig.DefaultValue = new WriteableNull();
-                            }
-                            settings.Add(settingConfig);
-                        }
-                        path.Pop();
                     }
-                }
-                processType(new Configuration());
-                Console.WriteLine(JsonSerializer.Serialize(settings));
-                return 0;
-            }
-            if (argsDictionary.ContainsKey("-help"))
-            {
-                Console.WriteLine("All arguments are optional.");
-                var helpTexts = new Dictionary<string, string>
-                {
-                    { "-help", "See this help text." },
-                    { "-settings <path>", "Path to a settings JSON file. Only the GameplaySettings will be loaded. Other settings will be loaded from your default settings.json file." },
-                    { "-outputpatch", "Output a .mmr patch file." },
-                    { "-inputpatch <path>", "Path to a .mmr patch file to apply." },
-                    { "-spoiler", "Output a .txt spoiler log." },
-                    { "-html", "Output a .html item tracker." },
-                    { "-rom", "Output a .z64 ROM file." },
-                    { "-seed", "Set the seed for the randomizer." },
-                    { "-output <path>", "Path to output the output ROM. Other outputs will be based on the filename in this path. If omitted, will output to \"output/{timestamp}.z64\"" },
-                    { "-input <path>", "Path to the input Majora's Mask (U) ROM. If omitted, will try to use \"input.z64\"." },
-                    { "-save", "Save the settings to the default settings.json file." },
-                    { "-maxImportanceWait", "Set the maximum amount of time (in seconds) that the randomizer should wait for item importance verification before skipping it." },
-                };
-                foreach (var kvp in helpTexts)
-                {
-                    Console.WriteLine("{0, -17} {1}", kvp.Key, kvp.Value);
-                }
-                Console.WriteLine("settings.json details:");
-                Console.WriteLine(GetSettingPath(cfg => cfg.GameplaySettings) + ":");
-                Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.LogicMode));
-                Console.WriteLine(GetArrayValueDescription(nameof(GameplaySettings.ItemCategoriesRandomized), Enum.GetValues<ItemCategory>().Where(c => c > 0).Select(c => c.ToString())));
-                Console.WriteLine(GetArrayValueDescription(nameof(GameplaySettings.LocationCategoriesRandomized), Enum.GetValues<LocationCategory>().Where(c => c > 0).Select(c => c.ToString())));
-                Console.WriteLine(GetArrayValueDescription(nameof(GameplaySettings.ClassicCategoriesRandomized), Enum.GetValues<ClassicCategory>().Where(c => c > 0).Select(c => c.ToString())));
-                Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.DamageMode));
-                Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.DamageEffect));
-                Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.MovementMode));
-                Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.FloorType));
-                Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.ClockSpeed));
-                Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.BlastMaskCooldown));
-                Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.GossipHintStyle));
-                Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.SmallKeyMode));
-                Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.BossKeyMode));
-                Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.StrayFairyMode));
-                Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.PriceMode));
-                Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.DungeonNavigationMode));
-                Console.WriteLine(GetSettingDescription(nameof(GameplaySettings.EnabledTricks), "Array of trick IDs."));
-                Console.WriteLine(GetSettingPath(cfg => cfg.GameplaySettings.ShortenCutsceneSettings) + ":");
-                Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.ShortenCutsceneSettings.General));
-                Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.ShortenCutsceneSettings.BossIntros));
-                Console.WriteLine(GetSettingPath(cfg => cfg.CosmeticSettings) + ":");
-                Console.WriteLine(GetEnumSettingDescription(cfg => cfg.CosmeticSettings.TatlColorSchema));
-                Console.WriteLine(GetEnumSettingDescription(cfg => cfg.CosmeticSettings.Music));
-                Console.WriteLine(GetArrayValueDescription(nameof(CosmeticSettings.Instruments), Enum.GetNames<Instrument>()));
-                Console.WriteLine(GetArrayValueDescription(nameof(CosmeticSettings.HeartsSelection), ColorSelectionManager.Hearts.GetItems().Select(csi => csi.Name)));
-                Console.WriteLine(GetArrayValueDescription(nameof(CosmeticSettings.MagicSelection), ColorSelectionManager.MagicMeter.GetItems().Select(csi => csi.Name)));
-                Console.WriteLine(GetSettingPath(cfg => cfg.CosmeticSettings.DPad.Pad) + ":");
-                Console.WriteLine(GetEnumArraySettingDescription(cfg => cfg.CosmeticSettings.DPad.Pad.Values) + " Array length of 4.");
-                return 0;
-            }
-            var configuration = LoadSettings();
-            if (configuration == null)
-            {
-                Console.WriteLine("Default settings file not found. Generating...");
-                configuration = new Configuration
-                {
-                    CosmeticSettings = new CosmeticSettings(),
-                    GameplaySettings = new GameplaySettings
+                    else if (property.PropertyType.IsEnum)
                     {
-                        ShortenCutsceneSettings = new ShortenCutsceneSettings(),
-                    },
-                    OutputSettings = new OutputSettings()
+                        var isFlagsEnum = property.PropertyType.HasAttribute<FlagsAttribute>();
+                        settingConfig.DataType = isFlagsEnum ? "FlagEnum" : "Enum";
+                        settingConfig.Values = Enum.GetValues(property.PropertyType).Cast<Enum>().Select(v => new SettingValue
+                        {
+                            Value = v.ToString(),
+                            Label = isFlagsEnum && Convert.ToInt32(v) == 0 ? null : v.GetAttribute<SettingNameAttribute>()?.Name ?? v.ToString().AddSpaces(),
+                            Tooltip = v.GetAttribute<DescriptionAttribute>()?.Description,
+                        }).ToList();
+                    }
+                    else if (property.PropertyType.IsClass || property.PropertyType.IsValueType)
                     {
-                        InputROMFilename = "input.z64",
-                    },
-                };
-                SaveSettings(configuration);
-                Console.WriteLine($"Generated {Path.ChangeExtension(DEFAULT_SETTINGS_FILENAME, SETTINGS_EXTENSION)}. Edit it to set your settings.");
+                        var propertyValue = property.GetValue(defaultValue);
+                        if (propertyValue == null)
+                        {
+                            propertyValue = Activator.CreateInstance(property.PropertyType);
+                        }
+                        processType(propertyValue);
+                        settingConfig = null;
+                    }
+                    if (settingConfig != null)
+                    {
+                        settingConfig.DefaultValue = property.GetValue(defaultValue);
+                        if (settingConfig.DefaultValue == null)
+                        {
+                            settingConfig.DefaultValue = new WriteableNull();
+                        }
+                        settings.Add(settingConfig);
+                    }
+                    path.Pop();
+                }
             }
-            var settingsPath = argsDictionary.GetValueOrDefault("-settings")?.FirstOrDefault();
-            if (settingsPath != null)
+            processType(new Configuration());
+            Console.WriteLine(JsonSerializer.Serialize(settings));
+            return 0;
+        }
+        if (argsDictionary.ContainsKey("-help"))
+        {
+            Console.WriteLine("All arguments are optional.");
+            var helpTexts = new Dictionary<string, string>
             {
-                var loadedConfiguration = LoadSettings(settingsPath);
-                if (loadedConfiguration == null)
+                { "-help", "See this help text." },
+                { "-settings <path>", "Path to a settings JSON file. Only the GameplaySettings will be loaded. Other settings will be loaded from your default settings.json file." },
+                { "-outputpatch", "Output a .mmr patch file." },
+                { "-inputpatch <path>", "Path to a .mmr patch file to apply." },
+                { "-spoiler", "Output a .txt spoiler log." },
+                { "-html", "Output a .html item tracker." },
+                { "-rom", "Output a .z64 ROM file." },
+                { "-seed", "Set the seed for the randomizer." },
+                { "-output <path>", "Path to output the output ROM. Other outputs will be based on the filename in this path. If omitted, will output to \"output/{timestamp}.z64\"" },
+                { "-input <path>", "Path to the input Majora's Mask (U) ROM. If omitted, will try to use \"input.z64\"." },
+                { "-save", "Save the settings to the default settings.json file." },
+                { "-maxImportanceWait", "Set the maximum amount of time (in seconds) that the randomizer should wait for item importance verification before skipping it." },
+            };
+            foreach (var kvp in helpTexts)
+            {
+                Console.WriteLine("{0, -17} {1}", kvp.Key, kvp.Value);
+            }
+            Console.WriteLine("settings.json details:");
+            Console.WriteLine(GetSettingPath(cfg => cfg.GameplaySettings) + ":");
+            Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.LogicMode));
+            Console.WriteLine(GetArrayValueDescription(nameof(GameplaySettings.ItemCategoriesRandomized), Enum.GetValues<ItemCategory>().Where(c => c > 0).Select(c => c.ToString())));
+            Console.WriteLine(GetArrayValueDescription(nameof(GameplaySettings.LocationCategoriesRandomized), Enum.GetValues<LocationCategory>().Where(c => c > 0).Select(c => c.ToString())));
+            Console.WriteLine(GetArrayValueDescription(nameof(GameplaySettings.ClassicCategoriesRandomized), Enum.GetValues<ClassicCategory>().Where(c => c > 0).Select(c => c.ToString())));
+            Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.DamageMode));
+            Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.DamageEffect));
+            Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.MovementMode));
+            Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.FloorType));
+            Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.ClockSpeed));
+            Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.BlastMaskCooldown));
+            Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.GossipHintStyle));
+            Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.SmallKeyMode));
+            Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.BossKeyMode));
+            Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.StrayFairyMode));
+            Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.PriceMode));
+            Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.DungeonNavigationMode));
+            Console.WriteLine(GetSettingDescription(nameof(GameplaySettings.EnabledTricks), "Array of trick IDs."));
+            Console.WriteLine(GetSettingPath(cfg => cfg.GameplaySettings.ShortenCutsceneSettings) + ":");
+            Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.ShortenCutsceneSettings.General));
+            Console.WriteLine(GetEnumSettingDescription(cfg => cfg.GameplaySettings.ShortenCutsceneSettings.BossIntros));
+            Console.WriteLine(GetSettingPath(cfg => cfg.CosmeticSettings) + ":");
+            Console.WriteLine(GetEnumSettingDescription(cfg => cfg.CosmeticSettings.TatlColorSchema));
+            Console.WriteLine(GetEnumSettingDescription(cfg => cfg.CosmeticSettings.Music));
+            Console.WriteLine(GetArrayValueDescription(nameof(CosmeticSettings.Instruments), Enum.GetNames<Instrument>()));
+            Console.WriteLine(GetArrayValueDescription(nameof(CosmeticSettings.HeartsSelection), ColorSelectionManager.Hearts.GetItems().Select(csi => csi.Name)));
+            Console.WriteLine(GetArrayValueDescription(nameof(CosmeticSettings.MagicSelection), ColorSelectionManager.MagicMeter.GetItems().Select(csi => csi.Name)));
+            Console.WriteLine(GetSettingPath(cfg => cfg.CosmeticSettings.DPad.Pad) + ":");
+            Console.WriteLine(GetEnumArraySettingDescription(cfg => cfg.CosmeticSettings.DPad.Pad.Values) + " Array length of 4.");
+            return 0;
+        }
+        var configuration = LoadSettings();
+        if (configuration == null)
+        {
+            Console.WriteLine("Default settings file not found. Generating...");
+            configuration = new Configuration
+            {
+                CosmeticSettings = new CosmeticSettings(),
+                GameplaySettings = new GameplaySettings
                 {
-                    Console.WriteLine($"File not found \"{settingsPath}\".");
+                    ShortenCutsceneSettings = new ShortenCutsceneSettings(),
+                },
+                OutputSettings = new OutputSettings()
+                {
+                    InputROMFilename = "input.z64",
+                },
+            };
+            SaveSettings(configuration);
+            Console.WriteLine($"Generated {Path.ChangeExtension(DEFAULT_SETTINGS_FILENAME, SETTINGS_EXTENSION)}. Edit it to set your settings.");
+        }
+        var settingsPath = argsDictionary.GetValueOrDefault("-settings")?.FirstOrDefault();
+        if (settingsPath != null)
+        {
+            var loadedConfiguration = LoadSettings(settingsPath);
+            if (loadedConfiguration == null)
+            {
+                Console.WriteLine($"File not found \"{settingsPath}\".");
+                return -1;
+            }
+            if (!argsDictionary.ContainsKey("-inputpatch"))
+            {
+                if (loadedConfiguration.GameplaySettings == null)
+                {
+                    Console.WriteLine($"Error loading GameplaySettings from \"{settingsPath}\".");
                     return -1;
                 }
-                if (!argsDictionary.ContainsKey("-inputpatch"))
-                {
-                    if (loadedConfiguration.GameplaySettings == null)
-                    {
-                        Console.WriteLine($"Error loading GameplaySettings from \"{settingsPath}\".");
-                        return -1;
-                    }
-                    configuration.GameplaySettings = loadedConfiguration.GameplaySettings;
-                    Console.WriteLine($"Loaded ${nameof(Configuration.GameplaySettings)} from \"{settingsPath}\".");
-                }
-                if (loadedConfiguration.CosmeticSettings != null && argsDictionary.ContainsKey("-cosmeticSettings"))
-                {
-                    configuration.CosmeticSettings = loadedConfiguration.CosmeticSettings;
-                    Console.WriteLine($"Loaded ${nameof(Configuration.CosmeticSettings)} from \"{settingsPath}\".");
-                }
-                if (loadedConfiguration.OutputSettings != null && argsDictionary.ContainsKey("-outputSettings"))
-                {
-                    configuration.OutputSettings = loadedConfiguration.OutputSettings;
-                    Console.WriteLine($"Loaded ${nameof(Configuration.OutputSettings)} from \"{settingsPath}\".");
-                }
-                if (loadedConfiguration.WebSettings != null && argsDictionary.ContainsKey("-webSettings"))
-                {
-                    configuration.WebSettings = loadedConfiguration.WebSettings;
-                    Console.WriteLine($"Loaded ${nameof(Configuration.WebSettings)} from \"{settingsPath}\".");
-                }
+                configuration.GameplaySettings = loadedConfiguration.GameplaySettings;
+                Console.WriteLine($"Loaded ${nameof(Configuration.GameplaySettings)} from \"{settingsPath}\".");
             }
-
-            if (configuration.GameplaySettings.ItemCategoriesRandomized != null || configuration.GameplaySettings.LocationCategoriesRandomized != null || configuration.GameplaySettings.ClassicCategoriesRandomized != null)
+            if (loadedConfiguration.CosmeticSettings != null && argsDictionary.ContainsKey("-cosmeticSettings"))
             {
-                var items = new List<Item>();
-                if (configuration.GameplaySettings.ItemCategoriesRandomized != null)
-                {
-                    items.AddRange(ItemUtils.ItemsByItemCategory().Where(kvp => configuration.GameplaySettings.ItemCategoriesRandomized.Contains(kvp.Key)).SelectMany(kvp => kvp.Value));
-                    configuration.GameplaySettings.ItemCategoriesRandomized = null;
-                }
-                if (configuration.GameplaySettings.LocationCategoriesRandomized != null)
-                {
-                    items.AddRange(ItemUtils.ItemsByLocationCategory().Where(kvp => configuration.GameplaySettings.LocationCategoriesRandomized.Contains(kvp.Key)).SelectMany(kvp => kvp.Value));
-                    configuration.GameplaySettings.LocationCategoriesRandomized = null;
-                }
-                if (configuration.GameplaySettings.ClassicCategoriesRandomized != null)
-                {
-                    items.AddRange(ItemUtils.ItemsByClassicCategory().Where(kvp => configuration.GameplaySettings.ClassicCategoriesRandomized.Contains(kvp.Key)).SelectMany(kvp => kvp.Value));
-                    configuration.GameplaySettings.ClassicCategoriesRandomized = null;
-                }
-                configuration.GameplaySettings.CustomItemList.Clear();
-                foreach (var item in items)
-                {
-                    configuration.GameplaySettings.CustomItemList.Add(item);
-                }
+                configuration.CosmeticSettings = loadedConfiguration.CosmeticSettings;
+                Console.WriteLine($"Loaded ${nameof(Configuration.CosmeticSettings)} from \"{settingsPath}\".");
             }
-            else
+            if (loadedConfiguration.OutputSettings != null && argsDictionary.ContainsKey("-outputSettings"))
             {
-                var itemList = typeof(GameplaySettings).GetProperty(nameof(GameplaySettings.CustomItemListString)).GetAttribute<SettingItemListAttribute>().ItemList.ToList();
-                configuration.GameplaySettings.CustomItemList = ConvertItemString(itemList, configuration.GameplaySettings.CustomItemListString).ToHashSet();
+                configuration.OutputSettings = loadedConfiguration.OutputSettings;
+                Console.WriteLine($"Loaded ${nameof(Configuration.OutputSettings)} from \"{settingsPath}\".");
             }
-
-            var startingItemList = typeof(GameplaySettings).GetProperty(nameof(GameplaySettings.CustomStartingItemListString)).GetAttribute<SettingItemListAttribute>().ItemList.ToList();
-            configuration.GameplaySettings.CustomStartingItemList = ConvertItemString(startingItemList, configuration.GameplaySettings.CustomStartingItemListString);
-            var junkItemList = typeof(GameplaySettings).GetProperty(nameof(GameplaySettings.CustomJunkLocationsString)).GetAttribute<SettingItemListAttribute>().ItemList.ToList();
-            configuration.GameplaySettings.CustomJunkLocations = ConvertItemString(junkItemList, configuration.GameplaySettings.CustomJunkLocationsString);
-
-            configuration.OutputSettings.InputPatchFilename = argsDictionary.GetValueOrDefault("-inputpatch")?.SingleOrDefault();
-            configuration.OutputSettings.GeneratePatch |= argsDictionary.ContainsKey("-outputpatch");
-            configuration.OutputSettings.GenerateCosmeticsPatch |= argsDictionary.ContainsKey("-cosmeticspatch");
-            configuration.OutputSettings.GenerateSpoilerLog |= argsDictionary.ContainsKey("-spoiler");
-            configuration.OutputSettings.GenerateHTMLLog |= argsDictionary.ContainsKey("-html");
-            configuration.OutputSettings.GenerateROM |= argsDictionary.ContainsKey("-rom");
-            configuration.OutputSettings.GenerateSpoilerLogJson |= argsDictionary.ContainsKey("-spoilerJson");
-            configuration.OutputSettings.GenerateSettingsJson |= argsDictionary.ContainsKey("-infoJson");
-            configuration.OutputSettings.GenerateHashJson |= argsDictionary.ContainsKey("-hashJson");
-            configuration.OutputSettings.GenerateCompressionInfoJson |= argsDictionary.ContainsKey("-compressionJson");
-            configuration.OutputSettings.GenerateRandomizedMusicInfoJson |= argsDictionary.ContainsKey("-randomMusicJson");
-            configuration.OutputSettings.IsPatchForVC |= argsDictionary.ContainsKey("-vcPatch");
-
-            int seed;
-            if (argsDictionary.ContainsKey("-seed"))
+            if (loadedConfiguration.WebSettings != null && argsDictionary.ContainsKey("-webSettings"))
             {
-                seed = int.Parse(argsDictionary["-seed"][0]);
-            }
-            else
-            {
-                seed = new Random().Next();
-            }
-
-
-            var outputArg = argsDictionary.GetValueOrDefault("-output");
-            if (outputArg != null)
-            {
-                if (outputArg.Count > 1)
-                {
-                    throw new ArgumentException("Invalid argument.", "-output");
-                }
-                configuration.OutputSettings.OutputROMFilename = outputArg.SingleOrDefault();
-            }
-            else if (!string.IsNullOrWhiteSpace(configuration.OutputSettings.InputPatchFilename))
-            {
-                configuration.OutputSettings.OutputROMFilename = Path.ChangeExtension(configuration.OutputSettings.InputPatchFilename, "z64");
-            }
-            configuration.OutputSettings.OutputROMFilename ??= "output/";
-            if (!Path.IsPathRooted(configuration.OutputSettings.OutputROMFilename))
-            {
-                configuration.OutputSettings.OutputROMFilename = Path.Combine(Directory.GetCurrentDirectory(), configuration.OutputSettings.OutputROMFilename);
-            }
-            var directory = Path.GetDirectoryName(configuration.OutputSettings.OutputROMFilename);
-            var filename = Path.GetFileName(configuration.OutputSettings.OutputROMFilename);
-            Directory.CreateDirectory(directory);
-            if (string.IsNullOrWhiteSpace(filename))
-            {
-                filename = FileUtils.MakeFilenameValid($"MMR-{typeof(Randomizer.Randomizer).Assembly.GetName().Version}-{DateTime.UtcNow:o}") + ".z64";
-            }
-            else if (Path.GetExtension(filename) != ".z64")
-            {
-                filename = Path.ChangeExtension(filename, "z64");
-            }
-            configuration.OutputSettings.OutputROMFilename = Path.Combine(directory, filename);
-
-            var inputArg = argsDictionary.GetValueOrDefault("-input");
-            if (inputArg != null)
-            {
-                if (inputArg.Count > 1)
-                {
-                    throw new ArgumentException("Invalid argument.", "-input");
-                }
-                configuration.OutputSettings.InputROMFilename = inputArg.SingleOrDefault();
-            }
-            configuration.OutputSettings.InputROMFilename ??= "input.z64";
-
-            if (argsDictionary.ContainsKey("-save"))
-            {
-                SaveSettings(configuration);
-            }
-
-            var validationResult = configuration.GameplaySettings.Validate() ?? configuration.OutputSettings.Validate();
-            if (validationResult != null)
-            {
-                Console.Error.WriteLine("Error: " + validationResult);
-                return -1;
-            }
-
-            var maxImportanceWaitArg = argsDictionary.GetValueOrDefault("-maxImportanceWait");
-            int? maxImportanceWait = null;
-            if (maxImportanceWaitArg != null)
-            {
-                if (maxImportanceWaitArg.Count > 1)
-                {
-                    throw new ArgumentException("Invalid argument.", "-maxImportanceWaitArg");
-                }
-                maxImportanceWait = int.Parse(maxImportanceWaitArg.SingleOrDefault());
-                if (maxImportanceWait < 5)
-                {
-                    maxImportanceWait = 5; // Threads don't cancel properly if you cancel the token too quickly.
-                }
-            }
-
-            try
-            {
-                string result;
-                if (argsDictionary.ContainsKey("-noProgressBar"))
-                {
-                    var progressReporter = new TextWriterProgressReporter(Console.Out);
-                    result = ConfigurationProcessor.Process(configuration, seed, progressReporter);
-                }
-                else
-                {
-                    using (var progressBar = new ProgressBar())
-                    {
-                        var progressReporter = new ProgressBarProgressReporter(progressBar, maxImportanceWait);
-                        result = ConfigurationProcessor.Process(configuration, seed, progressReporter);
-                    }
-                }
-                if (result != null)
-                {
-                    Console.Error.WriteLine("Error: " + result);
-                }
-                else
-                {
-                    Console.WriteLine($"Generation complete! Output to: {directory}");
-                }
-                return result == null ? 0 : -1;
-            }
-            catch (Exception e)
-            {
-                Console.Error.Write(e.Message);
-                Console.Error.Write(e.StackTrace);
-                return -1;
+                configuration.WebSettings = loadedConfiguration.WebSettings;
+                Console.WriteLine($"Loaded ${nameof(Configuration.WebSettings)} from \"{settingsPath}\".");
             }
         }
 
-        private static List<Item> ConvertItemString(List<Item> items, string c)
+        if (configuration.GameplaySettings.ItemCategoriesRandomized != null || configuration.GameplaySettings.LocationCategoriesRandomized != null || configuration.GameplaySettings.ClassicCategoriesRandomized != null)
         {
-            var sectionCount = (int)Math.Ceiling(items.Count / 32.0);
-            var result = new List<Item>();
-            if (string.IsNullOrWhiteSpace(c))
+            var items = new List<Item>();
+            if (configuration.GameplaySettings.ItemCategoriesRandomized != null)
             {
-                return result;
+                items.AddRange(ItemUtils.ItemsByItemCategory().Where(kvp => configuration.GameplaySettings.ItemCategoriesRandomized.Contains(kvp.Key)).SelectMany(kvp => kvp.Value));
+                configuration.GameplaySettings.ItemCategoriesRandomized = null;
             }
-            try
+            if (configuration.GameplaySettings.LocationCategoriesRandomized != null)
             {
-                string[] v = c.Split('-');
-                int[] vi = new int[sectionCount];
-                if (v.Length != vi.Length)
+                items.AddRange(ItemUtils.ItemsByLocationCategory().Where(kvp => configuration.GameplaySettings.LocationCategoriesRandomized.Contains(kvp.Key)).SelectMany(kvp => kvp.Value));
+                configuration.GameplaySettings.LocationCategoriesRandomized = null;
+            }
+            if (configuration.GameplaySettings.ClassicCategoriesRandomized != null)
+            {
+                items.AddRange(ItemUtils.ItemsByClassicCategory().Where(kvp => configuration.GameplaySettings.ClassicCategoriesRandomized.Contains(kvp.Key)).SelectMany(kvp => kvp.Value));
+                configuration.GameplaySettings.ClassicCategoriesRandomized = null;
+            }
+            configuration.GameplaySettings.CustomItemList.Clear();
+            foreach (var item in items)
+            {
+                configuration.GameplaySettings.CustomItemList.Add(item);
+            }
+        }
+        else
+        {
+            var itemList = typeof(GameplaySettings).GetProperty(nameof(GameplaySettings.CustomItemListString)).GetAttribute<SettingItemListAttribute>().ItemList.ToList();
+            configuration.GameplaySettings.CustomItemList = ConvertItemString(itemList, configuration.GameplaySettings.CustomItemListString).ToHashSet();
+        }
+
+        var startingItemList = typeof(GameplaySettings).GetProperty(nameof(GameplaySettings.CustomStartingItemListString)).GetAttribute<SettingItemListAttribute>().ItemList.ToList();
+        configuration.GameplaySettings.CustomStartingItemList = ConvertItemString(startingItemList, configuration.GameplaySettings.CustomStartingItemListString);
+        var junkItemList = typeof(GameplaySettings).GetProperty(nameof(GameplaySettings.CustomJunkLocationsString)).GetAttribute<SettingItemListAttribute>().ItemList.ToList();
+        configuration.GameplaySettings.CustomJunkLocations = ConvertItemString(junkItemList, configuration.GameplaySettings.CustomJunkLocationsString);
+
+        configuration.OutputSettings.InputPatchFilename = argsDictionary.GetValueOrDefault("-inputpatch")?.SingleOrDefault();
+        configuration.OutputSettings.GeneratePatch |= argsDictionary.ContainsKey("-outputpatch");
+        configuration.OutputSettings.GenerateCosmeticsPatch |= argsDictionary.ContainsKey("-cosmeticspatch");
+        configuration.OutputSettings.GenerateSpoilerLog |= argsDictionary.ContainsKey("-spoiler");
+        configuration.OutputSettings.GenerateHTMLLog |= argsDictionary.ContainsKey("-html");
+        configuration.OutputSettings.GenerateROM |= argsDictionary.ContainsKey("-rom");
+        configuration.OutputSettings.GenerateSpoilerLogJson |= argsDictionary.ContainsKey("-spoilerJson");
+        configuration.OutputSettings.GenerateSettingsJson |= argsDictionary.ContainsKey("-infoJson");
+        configuration.OutputSettings.GenerateHashJson |= argsDictionary.ContainsKey("-hashJson");
+        configuration.OutputSettings.GenerateCompressionInfoJson |= argsDictionary.ContainsKey("-compressionJson");
+        configuration.OutputSettings.GenerateRandomizedMusicInfoJson |= argsDictionary.ContainsKey("-randomMusicJson");
+        configuration.OutputSettings.IsPatchForVC |= argsDictionary.ContainsKey("-vcPatch");
+
+        int seed;
+        if (argsDictionary.ContainsKey("-seed"))
+        {
+            seed = int.Parse(argsDictionary["-seed"][0]);
+        }
+        else
+        {
+            seed = new Random().Next();
+        }
+
+
+        var outputArg = argsDictionary.GetValueOrDefault("-output");
+        if (outputArg != null)
+        {
+            if (outputArg.Count > 1)
+            {
+                throw new ArgumentException("Invalid argument.", "-output");
+            }
+            configuration.OutputSettings.OutputROMFilename = outputArg.SingleOrDefault();
+        }
+        else if (!string.IsNullOrWhiteSpace(configuration.OutputSettings.InputPatchFilename))
+        {
+            configuration.OutputSettings.OutputROMFilename = Path.ChangeExtension(configuration.OutputSettings.InputPatchFilename, "z64");
+        }
+        configuration.OutputSettings.OutputROMFilename ??= "output/";
+        if (!Path.IsPathRooted(configuration.OutputSettings.OutputROMFilename))
+        {
+            configuration.OutputSettings.OutputROMFilename = Path.Combine(Directory.GetCurrentDirectory(), configuration.OutputSettings.OutputROMFilename);
+        }
+        var directory = Path.GetDirectoryName(configuration.OutputSettings.OutputROMFilename);
+        var filename = Path.GetFileName(configuration.OutputSettings.OutputROMFilename);
+        Directory.CreateDirectory(directory);
+        if (string.IsNullOrWhiteSpace(filename))
+        {
+            filename = FileUtils.MakeFilenameValid($"MMR-{typeof(Randomizer.Randomizer).Assembly.GetName().Version}-{DateTime.UtcNow:o}") + ".z64";
+        }
+        else if (Path.GetExtension(filename) != ".z64")
+        {
+            filename = Path.ChangeExtension(filename, "z64");
+        }
+        configuration.OutputSettings.OutputROMFilename = Path.Combine(directory, filename);
+
+        var inputArg = argsDictionary.GetValueOrDefault("-input");
+        if (inputArg != null)
+        {
+            if (inputArg.Count > 1)
+            {
+                throw new ArgumentException("Invalid argument.", "-input");
+            }
+            configuration.OutputSettings.InputROMFilename = inputArg.SingleOrDefault();
+        }
+        configuration.OutputSettings.InputROMFilename ??= "input.z64";
+
+        if (argsDictionary.ContainsKey("-save"))
+        {
+            SaveSettings(configuration);
+        }
+
+        var validationResult = configuration.GameplaySettings.Validate() ?? configuration.OutputSettings.Validate();
+        if (validationResult != null)
+        {
+            Console.Error.WriteLine("Error: " + validationResult);
+            return -1;
+        }
+
+        var maxImportanceWaitArg = argsDictionary.GetValueOrDefault("-maxImportanceWait");
+        int? maxImportanceWait = null;
+        if (maxImportanceWaitArg != null)
+        {
+            if (maxImportanceWaitArg.Count > 1)
+            {
+                throw new ArgumentException("Invalid argument.", "-maxImportanceWaitArg");
+            }
+            maxImportanceWait = int.Parse(maxImportanceWaitArg.SingleOrDefault());
+            if (maxImportanceWait < 5)
+            {
+                maxImportanceWait = 5; // Threads don't cancel properly if you cancel the token too quickly.
+            }
+        }
+
+        try
+        {
+            string result;
+            if (argsDictionary.ContainsKey("-noProgressBar"))
+            {
+                var progressReporter = new TextWriterProgressReporter(Console.Out);
+                result = ConfigurationProcessor.Process(configuration, seed, progressReporter);
+            }
+            else
+            {
+                using (var progressBar = new ProgressBar())
                 {
-                    return null;
-                }
-                for (int i = 0; i < sectionCount; i++)
-                {
-                    if (v[sectionCount - 1 - i] != "")
-                    {
-                        vi[i] = Convert.ToInt32(v[sectionCount - 1 - i], 16);
-                    }
-                }
-                for (int i = 0; i < 32 * sectionCount; i++)
-                {
-                    int j = i / 32;
-                    int k = i % 32;
-                    if (((vi[j] >> k) & 1) > 0)
-                    {
-                        if (i >= items.Count)
-                        {
-                            throw new IndexOutOfRangeException();
-                        }
-                        result.Add(items[i]);
-                    }
+                    var progressReporter = new ProgressBarProgressReporter(progressBar, maxImportanceWait);
+                    result = ConfigurationProcessor.Process(configuration, seed, progressReporter);
                 }
             }
-            catch
+            if (result != null)
+            {
+                Console.Error.WriteLine("Error: " + result);
+            }
+            else
+            {
+                Console.WriteLine($"Generation complete! Output to: {directory}");
+            }
+            return result == null ? 0 : -1;
+        }
+        catch (Exception e)
+        {
+            Console.Error.Write(e.Message);
+            Console.Error.Write(e.StackTrace);
+            return -1;
+        }
+    }
+
+    private static List<Item> ConvertItemString(List<Item> items, string c)
+    {
+        var sectionCount = (int)Math.Ceiling(items.Count / 32.0);
+        var result = new List<Item>();
+        if (string.IsNullOrWhiteSpace(c))
+        {
+            return result;
+        }
+        try
+        {
+            string[] v = c.Split('-');
+            int[] vi = new int[sectionCount];
+            if (v.Length != vi.Length)
             {
                 return null;
             }
-            return result;
-        }
-
-        private const string DEFAULT_SETTINGS_FILENAME = "settings";
-        private const string SETTINGS_EXTENSION = "json";
-        private static void SaveSettings(Configuration configuration, string filename = null)
-        {
-            var path = Path.ChangeExtension(filename ?? Path.Combine(Values.MainDirectory, DEFAULT_SETTINGS_FILENAME), SETTINGS_EXTENSION);
-            string logicFilePath = null;
-            //if (filename != null)
-            //{
-            //    logicFilePath = configuration.GameplaySettings.UserLogicFileName;
-            //    configuration.GameplaySettings.UserLogicFileName = null;
-            //    if (configuration.GameplaySettings.LogicMode == LogicMode.UserLogic && logicFilePath != null && File.Exists(logicFilePath))
-            //    {
-            //        using (StreamReader Req = new StreamReader(File.OpenRead(logicFilePath)))
-            //        {
-            //            configuration.GameplaySettings.Logic = Req.ReadToEnd();
-            //            if (configuration.GameplaySettings.Logic.StartsWith("{"))
-            //            {
-            //                var logicConfiguration = Configuration.FromJson(configuration.GameplaySettings.Logic);
-            //                configuration.GameplaySettings.Logic = logicConfiguration.GameplaySettings.Logic;
-            //            }
-            //        }
-            //    }
-            //    configurationToSave = new Configuration
-            //    {
-            //        GameplaySettings = configuration.GameplaySettings,
-            //    };
-            //}
-            var fileInfo = new FileInfo(path);
-            fileInfo.Directory.Create();
-            File.WriteAllText(fileInfo.FullName, configuration.ToString());
-            //if (logicFilePath != null)
-            //{
-            //    configuration.GameplaySettings.UserLogicFileName = logicFilePath;
-            //    configuration.GameplaySettings.Logic = null;
-            //}
-        }
-
-        private static Configuration LoadSettings(string filename = null)
-        {
-            var path = Path.ChangeExtension(filename ?? Path.Combine(Values.MainDirectory, DEFAULT_SETTINGS_FILENAME), SETTINGS_EXTENSION);
-            if (File.Exists(path))
+            for (int i = 0; i < sectionCount; i++)
             {
-                Configuration configuration;
-                using (StreamReader Req = new StreamReader(File.OpenRead(path)))
+                if (v[sectionCount - 1 - i] != "")
                 {
-                    configuration = Configuration.FromJson(Req.ReadToEnd());
+                    vi[i] = Convert.ToInt32(v[sectionCount - 1 - i], 16);
                 }
-
-                if (configuration.GameplaySettings != null)
-                {
-                    if (configuration.GameplaySettings.Logic != null)
-                    {
-                        configuration.GameplaySettings.UserLogicFileName = path;
-                        configuration.GameplaySettings.Logic = null;
-                    }
-                    if (!File.Exists(configuration.GameplaySettings.UserLogicFileName))
-                    {
-                        configuration.GameplaySettings.UserLogicFileName = string.Empty;
-                    }
-                }
-                return configuration;
             }
+            for (int i = 0; i < 32 * sectionCount; i++)
+            {
+                int j = i / 32;
+                int k = i % 32;
+                if (((vi[j] >> k) & 1) > 0)
+                {
+                    if (i >= items.Count)
+                    {
+                        throw new IndexOutOfRangeException();
+                    }
+                    result.Add(items[i]);
+                }
+            }
+        }
+        catch
+        {
             return null;
         }
+        return result;
+    }
 
-        private static string GetEnumSettingDescription<T>(Expression<Func<Configuration, T>> propertySelector) where T : struct
-        {
-            return GetSettingDescription(((MemberExpression)propertySelector.Body).Member.Name, string.Join('|', Enum.GetNames(typeof(T))));
-        }
+    private const string DEFAULT_SETTINGS_FILENAME = "settings";
+    private const string SETTINGS_EXTENSION = "json";
+    private static void SaveSettings(Configuration configuration, string filename = null)
+    {
+        var path = Path.ChangeExtension(filename ?? Path.Combine(Values.MainDirectory, DEFAULT_SETTINGS_FILENAME), SETTINGS_EXTENSION);
+        string logicFilePath = null;
+        //if (filename != null)
+        //{
+        //    logicFilePath = configuration.GameplaySettings.UserLogicFileName;
+        //    configuration.GameplaySettings.UserLogicFileName = null;
+        //    if (configuration.GameplaySettings.LogicMode == LogicMode.UserLogic && logicFilePath != null && File.Exists(logicFilePath))
+        //    {
+        //        using (StreamReader Req = new StreamReader(File.OpenRead(logicFilePath)))
+        //        {
+        //            configuration.GameplaySettings.Logic = Req.ReadToEnd();
+        //            if (configuration.GameplaySettings.Logic.StartsWith("{"))
+        //            {
+        //                var logicConfiguration = Configuration.FromJson(configuration.GameplaySettings.Logic);
+        //                configuration.GameplaySettings.Logic = logicConfiguration.GameplaySettings.Logic;
+        //            }
+        //        }
+        //    }
+        //    configurationToSave = new Configuration
+        //    {
+        //        GameplaySettings = configuration.GameplaySettings,
+        //    };
+        //}
+        var fileInfo = new FileInfo(path);
+        fileInfo.Directory.Create();
+        File.WriteAllText(fileInfo.FullName, configuration.ToString());
+        //if (logicFilePath != null)
+        //{
+        //    configuration.GameplaySettings.UserLogicFileName = logicFilePath;
+        //    configuration.GameplaySettings.Logic = null;
+        //}
+    }
 
-        private static string GetEnumArraySettingDescription<T>(Expression<Func<Configuration, T[]>> propertySelector) where T : struct
+    private static Configuration LoadSettings(string filename = null)
+    {
+        var path = Path.ChangeExtension(filename ?? Path.Combine(Values.MainDirectory, DEFAULT_SETTINGS_FILENAME), SETTINGS_EXTENSION);
+        if (File.Exists(path))
         {
-            return GetSettingDescription(((MemberExpression)propertySelector.Body).Member.Name, $"[{string.Join('|', Enum.GetNames(typeof(T)))}]");
-        }
+            Configuration configuration;
+            using (StreamReader Req = new StreamReader(File.OpenRead(path)))
+            {
+                configuration = Configuration.FromJson(Req.ReadToEnd());
+            }
 
-        private static string GetArrayValueDescription(string name, IEnumerable<string> values)
-        {
-            return GetSettingDescription(name, string.Join('|', values));
+            if (configuration.GameplaySettings != null)
+            {
+                if (configuration.GameplaySettings.Logic != null)
+                {
+                    configuration.GameplaySettings.UserLogicFileName = path;
+                    configuration.GameplaySettings.Logic = null;
+                }
+                if (!File.Exists(configuration.GameplaySettings.UserLogicFileName))
+                {
+                    configuration.GameplaySettings.UserLogicFileName = string.Empty;
+                }
+            }
+            return configuration;
         }
+        return null;
+    }
 
-        private static string GetSettingPath<T>(Expression<Func<Configuration, T>> expression)
-        {
-            return string.Join('.', expression.Body.ToString().Split('.').Skip(1));
-        }
+    private static string GetEnumSettingDescription<T>(Expression<Func<Configuration, T>> propertySelector) where T : struct
+    {
+        return GetSettingDescription(((MemberExpression)propertySelector.Body).Member.Name, string.Join('|', Enum.GetNames(typeof(T))));
+    }
 
-        private static string GetSettingDescription(string name, string description)
-        {
-            return $"{name,-17} {description}";
-        }
+    private static string GetEnumArraySettingDescription<T>(Expression<Func<Configuration, T[]>> propertySelector) where T : struct
+    {
+        return GetSettingDescription(((MemberExpression)propertySelector.Body).Member.Name, $"[{string.Join('|', Enum.GetNames(typeof(T)))}]");
+    }
+
+    private static string GetArrayValueDescription(string name, IEnumerable<string> values)
+    {
+        return GetSettingDescription(name, string.Join('|', values));
+    }
+
+    private static string GetSettingPath<T>(Expression<Func<Configuration, T>> expression)
+    {
+        return string.Join('.', expression.Body.ToString().Split('.').Skip(1));
+    }
+
+    private static string GetSettingDescription(string name, string description)
+    {
+        return $"{name,-17} {description}";
     }
 }

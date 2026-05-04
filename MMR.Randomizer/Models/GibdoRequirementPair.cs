@@ -1,9 +1,8 @@
-﻿namespace MMR.Randomizer.Models
+﻿namespace MMR.Randomizer.Models;
+
+public class GibdoRequirementPair
 {
-    public class GibdoRequirementPair
-    {
-        public string Gibdo { get; set; }
-        public string Requirement { get; set; }
-    }
+    public string Gibdo { get; set; }
+    public string Requirement { get; set; }
 }
 

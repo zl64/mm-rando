@@ -1,12 +1,11 @@
-﻿namespace MMR.Randomizer.Models.Settings
+﻿namespace MMR.Randomizer.Models.Settings;
+
+public enum TatlColorSchema
 {
-    public enum TatlColorSchema
-    {
-        Default,
-        Dark,
-        Hot,
-        Cool,
-        Random,
-        Rainbow,
-    }
+    Default,
+    Dark,
+    Hot,
+    Cool,
+    Random,
+    Rainbow,
 }

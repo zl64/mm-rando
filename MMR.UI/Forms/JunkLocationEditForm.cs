@@ -9,169 +9,168 @@ using System.Linq;
 using System.Runtime.Versioning;
 using System.Windows.Forms;
 
-namespace MMR.UI.Forms
+namespace MMR.UI.Forms;
+
+[SupportedOSPlatform("windows")]
+public partial class JunkLocationEditForm : Form
 {
-    [SupportedOSPlatform("windows")]
-    public partial class JunkLocationEditForm : Form
+    private readonly List<Item> _junkLocations;
+    private bool updating = false;
+    private readonly int ItemGroupCount;
+
+    public string ExternalLabel { get; private set; }
+    public List<Item> CustomJunkLocations { get; private set; } = new List<Item>();
+    public string CustomJunkLocationsString { get; private set; }
+
+    public JunkLocationEditForm()
     {
-        private readonly List<Item> _junkLocations;
-        private bool updating = false;
-        private readonly int ItemGroupCount;
+        InitializeComponent();
 
-        public string ExternalLabel { get; private set; }
-        public List<Item> CustomJunkLocations { get; private set; } = new List<Item>();
-        public string CustomJunkLocationsString { get; private set; }
+        _junkLocations = typeof(GameplaySettings).GetProperty(nameof(GameplaySettings.CustomJunkLocationsString)).GetAttribute<SettingItemListAttribute>().ItemList.ToList();
+        ItemGroupCount = (int)Math.Ceiling((decimal)_junkLocations.Count / 32);
 
-        public JunkLocationEditForm()
+        PrintToListView();
+
+        if (CustomJunkLocations != null)
         {
-            InitializeComponent();
+            UpdateString(CustomJunkLocations);
+            ExternalLabel = $"{CustomJunkLocations.Count}/{_junkLocations.Count} locations selected";
+        }
+        else
+        {
+            tJunkLocationsString.Text = "--";
+        }
+    }
 
-            _junkLocations = typeof(GameplaySettings).GetProperty(nameof(GameplaySettings.CustomJunkLocationsString)).GetAttribute<SettingItemListAttribute>().ItemList.ToList();
-            ItemGroupCount = (int)Math.Ceiling((decimal)_junkLocations.Count / 32);
+    private void PrintToListView()
+    {
+        foreach (var item in _junkLocations)
+        {
+            if (!item.Location().ToLower().Contains(tSearchString.Text.ToLower())) { continue; }
+            lJunkLocations.Items.Add(new ListViewItem { Text = item.Location(), Tag = item, Checked = CustomJunkLocations.Contains(item) });
+        }
+    }
 
-            PrintToListView();
+    private void JunkLocationEditForm_FormClosing(object sender, FormClosingEventArgs e)
+    {
+        if (e.CloseReason == CloseReason.UserClosing)
+        {
+            e.Cancel = true;
+            Hide();
+        }
+    }
 
-            if (CustomJunkLocations != null)
-            {
-                UpdateString(CustomJunkLocations);
-                ExternalLabel = $"{CustomJunkLocations.Count}/{_junkLocations.Count} locations selected";
-            }
-            else
-            {
-                tJunkLocationsString.Text = "--";
-            }
+    private void UpdateString(List<Item> selections)
+    {
+        int[] n = new int[ItemGroupCount];
+        string[] ns = new string[ItemGroupCount];
+        foreach (var item in selections)
+        {
+            var i = _junkLocations.IndexOf(item);
+            int j = i / 32;
+            int k = i % 32;
+            n[j] |= (int)(1 << k);
+            ns[j] = Convert.ToString(n[j], 16);
         }
 
-        private void PrintToListView()
-        {
-            foreach (var item in _junkLocations)
-            {
-                if (!item.Location().ToLower().Contains(tSearchString.Text.ToLower())) { continue; }
-                lJunkLocations.Items.Add(new ListViewItem { Text = item.Location(), Tag = item, Checked = CustomJunkLocations.Contains(item) });
-            }
-        }
+        tJunkLocationsString.Text = string.Join("-", ns.Reverse());
+        CustomJunkLocationsString = tJunkLocationsString.Text;
+    }
 
-        private void JunkLocationEditForm_FormClosing(object sender, FormClosingEventArgs e)
+    public void UpdateChecks(string c)
+    {
+        updating = true;
+        try
         {
-            if (e.CloseReason == CloseReason.UserClosing)
+            tJunkLocationsString.Text = c;
+            CustomJunkLocationsString = c;
+            CustomJunkLocations.Clear();
+            string[] v = c.Split('-');
+            int[] vi = new int[ItemGroupCount];
+            if (v.Length != vi.Length)
             {
-                e.Cancel = true;
-                Hide();
-            }
-        }
-
-        private void UpdateString(List<Item> selections)
-        {
-            int[] n = new int[ItemGroupCount];
-            string[] ns = new string[ItemGroupCount];
-            foreach (var item in selections)
-            {
-                var i = _junkLocations.IndexOf(item);
-                int j = i / 32;
-                int k = i % 32;
-                n[j] |= (int)(1 << k);
-                ns[j] = Convert.ToString(n[j], 16);
-            }
-
-            tJunkLocationsString.Text = string.Join("-", ns.Reverse());
-            CustomJunkLocationsString = tJunkLocationsString.Text;
-        }
-
-        public void UpdateChecks(string c)
-        {
-            updating = true;
-            try
-            {
-                tJunkLocationsString.Text = c;
-                CustomJunkLocationsString = c;
-                CustomJunkLocations.Clear();
-                string[] v = c.Split('-');
-                int[] vi = new int[ItemGroupCount];
-                if (v.Length != vi.Length)
-                {
-                    ExternalLabel = "Invalid junk locations string";
-                    return;
-                }
-                for (int i = 0; i < ItemGroupCount; i++)
-                {
-                    if (v[ItemGroupCount - 1 - i] != "")
-                    {
-                        vi[i] = Convert.ToInt32(v[ItemGroupCount - 1 - i], 16);
-                    }
-                }
-                for (int i = 0; i < 32 * ItemGroupCount; i++)
-                {
-                    int j = i / 32;
-                    int k = i % 32;
-                    if (((vi[j] >> k) & 1) > 0)
-                    {
-                        if (i >= _junkLocations.Count)
-                        {
-                            throw new IndexOutOfRangeException();
-                        }
-                        CustomJunkLocations.Add(_junkLocations[i]);
-                    }
-                }
-                foreach (ListViewItem l in lJunkLocations.Items)
-                {
-                    if (CustomJunkLocations.Contains((Item)l.Tag))
-                    {
-                        l.Checked = true;
-                    }
-                    else
-                    {
-                        l.Checked = false;
-                    }
-                }
-                ExternalLabel = $"{CustomJunkLocations.Count}/{_junkLocations.Count} locations selected";
-            }
-            catch
-            {
-                CustomJunkLocations.Clear();
                 ExternalLabel = "Invalid junk locations string";
-            }
-            finally
-            {
-                updating = false;
-            }
-        }
-
-        private void tJunkLocationsString_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyData == Keys.Enter)
-            {
-                UpdateChecks(tJunkLocationsString.Text);
-            }
-        }
-
-        private void lJunkLocations_ItemChecked(object sender, ItemCheckedEventArgs e)
-        {
-            if (updating)
-            {
                 return;
             }
-            updating = true;
-            if (e.Item.Checked)
+            for (int i = 0; i < ItemGroupCount; i++)
             {
-                CustomJunkLocations.Add((Item)e.Item.Tag);
+                if (v[ItemGroupCount - 1 - i] != "")
+                {
+                    vi[i] = Convert.ToInt32(v[ItemGroupCount - 1 - i], 16);
+                }
             }
-            else
+            for (int i = 0; i < 32 * ItemGroupCount; i++)
             {
-                CustomJunkLocations.Remove((Item)e.Item.Tag);
+                int j = i / 32;
+                int k = i % 32;
+                if (((vi[j] >> k) & 1) > 0)
+                {
+                    if (i >= _junkLocations.Count)
+                    {
+                        throw new IndexOutOfRangeException();
+                    }
+                    CustomJunkLocations.Add(_junkLocations[i]);
+                }
             }
-            UpdateString(CustomJunkLocations);
+            foreach (ListViewItem l in lJunkLocations.Items)
+            {
+                if (CustomJunkLocations.Contains((Item)l.Tag))
+                {
+                    l.Checked = true;
+                }
+                else
+                {
+                    l.Checked = false;
+                }
+            }
+            ExternalLabel = $"{CustomJunkLocations.Count}/{_junkLocations.Count} locations selected";
+        }
+        catch
+        {
+            CustomJunkLocations.Clear();
+            ExternalLabel = "Invalid junk locations string";
+        }
+        finally
+        {
             updating = false;
         }
+    }
 
-        private void tSearchString_KeyDown(object sender, KeyEventArgs e)
+    private void tJunkLocationsString_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.KeyData == Keys.Enter)
         {
-            if (e.KeyData == Keys.Enter)
-            {
-                updating = true;
-                lJunkLocations.Items.Clear();
-                PrintToListView();
-                updating = false;
-            }
+            UpdateChecks(tJunkLocationsString.Text);
+        }
+    }
+
+    private void lJunkLocations_ItemChecked(object sender, ItemCheckedEventArgs e)
+    {
+        if (updating)
+        {
+            return;
+        }
+        updating = true;
+        if (e.Item.Checked)
+        {
+            CustomJunkLocations.Add((Item)e.Item.Tag);
+        }
+        else
+        {
+            CustomJunkLocations.Remove((Item)e.Item.Tag);
+        }
+        UpdateString(CustomJunkLocations);
+        updating = false;
+    }
+
+    private void tSearchString_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.KeyData == Keys.Enter)
+        {
+            updating = true;
+            lJunkLocations.Items.Clear();
+            PrintToListView();
+            updating = false;
         }
     }
 }

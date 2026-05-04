@@ -1,12 +1,11 @@
 ﻿
-namespace MMR.Randomizer.Models.Rom
-{
+namespace MMR.Randomizer.Models.Rom;
 
-    public class SequenceBinaryData
-    {
-        public byte[] SequenceBinary { get; set; } = null; // binary copy of the zsequence
-        public InstrumentSetInfo InstrumentSet { get; set; } = null;
-        public byte[] FormMask { get; internal set; }
-    }
+
+public class SequenceBinaryData
+{
+    public byte[] SequenceBinary { get; set; } = null; // binary copy of the zsequence
+    public InstrumentSetInfo InstrumentSet { get; set; } = null;
+    public byte[] FormMask { get; internal set; }
 }
 

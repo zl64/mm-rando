@@ -1,14 +1,13 @@
 ﻿using System;
 
-namespace MMR.Randomizer.Attributes
-{
-    public class VictoryModeFlavorTextAttribute : Attribute
-    {
-        public string Text { get; }
+namespace MMR.Randomizer.Attributes;
 
-        public VictoryModeFlavorTextAttribute(string text)
-        {
-            Text = text;
-        }
+public class VictoryModeFlavorTextAttribute : Attribute
+{
+    public string Text { get; }
+
+    public VictoryModeFlavorTextAttribute(string text)
+    {
+        Text = text;
     }
 }

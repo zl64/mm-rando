@@ -1,10 +1,9 @@
-﻿namespace MMR.Randomizer.Models.Settings
+﻿namespace MMR.Randomizer.Models.Settings;
+
+public enum GossipHintStyle
 {
-    public enum GossipHintStyle
-    {
-        Default,
-        Random,
-        Relevant,
-        Competitive,
-    }
+    Default,
+    Random,
+    Relevant,
+    Competitive,
 }

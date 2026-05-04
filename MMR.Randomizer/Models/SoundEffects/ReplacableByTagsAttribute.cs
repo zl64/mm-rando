@@ -2,24 +2,23 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace MMR.Randomizer.Models.SoundEffects
+namespace MMR.Randomizer.Models.SoundEffects;
+
+/// <summary>
+/// Specify which tags are valid for replacing the sound.
+/// </summary>
+public sealed class ReplacableByTagsAttribute : Attribute
 {
-    /// <summary>
-    /// Specify which tags are valid for replacing the sound.
-    /// </summary>
-    public sealed class ReplacableByTagsAttribute : Attribute
+    public ReadOnlyCollection<SoundEffectTag> Tags { get; private set; }
+
+    public ReplacableByTagsAttribute(SoundEffectTag tag, params SoundEffectTag[] additionalTags)
     {
-        public ReadOnlyCollection<SoundEffectTag> Tags { get; private set; }
-
-        public ReplacableByTagsAttribute(SoundEffectTag tag, params SoundEffectTag[] additionalTags)
+        var tags = new List<SoundEffectTag> { tag };
+        if (additionalTags?.Length > 0)
         {
-            var tags = new List<SoundEffectTag> { tag };
-            if (additionalTags?.Length > 0)
-            {
-                tags.AddRange(additionalTags);
-            }
-
-            Tags = new ReadOnlyCollection<SoundEffectTag>(tags);
+            tags.AddRange(additionalTags);
         }
+
+        Tags = new ReadOnlyCollection<SoundEffectTag>(tags);
     }
 }

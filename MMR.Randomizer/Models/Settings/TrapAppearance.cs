@@ -1,12 +1,11 @@
-﻿namespace MMR.Randomizer.Models.Settings
+﻿namespace MMR.Randomizer.Models.Settings;
+
+/// <summary>
+/// Traps appearance setting.
+/// </summary>
+public enum TrapAppearance
 {
-    /// <summary>
-    /// Traps appearance setting.
-    /// </summary>
-    public enum TrapAppearance
-    {
-        MajorItems,
-        JunkItems,
-        Anything,
-    }
+    MajorItems,
+    JunkItems,
+    Anything,
 }

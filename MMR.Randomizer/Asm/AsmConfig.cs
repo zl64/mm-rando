@@ -1,28 +1,27 @@
-﻿namespace MMR.Randomizer.Asm
+﻿namespace MMR.Randomizer.Asm;
+
+/// <summary>
+/// Versioned Asm configuration structure.
+/// </summary>
+public interface IAsmConfigStruct
 {
-    /// <summary>
-    /// Versioned Asm configuration structure.
-    /// </summary>
-    public interface IAsmConfigStruct
-    {
-        byte[] ToBytes();
-    }
+    byte[] ToBytes();
+}
+
+/// <summary>
+/// Versioned Asm configuration container.
+/// </summary>
+public abstract class AsmConfig
+{
+    public abstract IAsmConfigStruct ToStruct(uint version);
 
     /// <summary>
-    /// Versioned Asm configuration container.
+    /// Convert to bytes.
     /// </summary>
-    public abstract class AsmConfig
+    /// <param name="version">Structure version</param>
+    /// <returns>Bytes</returns>
+    public byte[] ToBytes(uint version)
     {
-        public abstract IAsmConfigStruct ToStruct(uint version);
-
-        /// <summary>
-        /// Convert to bytes.
-        /// </summary>
-        /// <param name="version">Structure version</param>
-        /// <returns>Bytes</returns>
-        public byte[] ToBytes(uint version)
-        {
-            return ToStruct(version).ToBytes();
-        }
+        return ToStruct(version).ToBytes();
     }
 }

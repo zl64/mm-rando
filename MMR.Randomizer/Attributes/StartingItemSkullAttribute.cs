@@ -1,9 +1,8 @@
 ﻿using System;
 
-namespace MMR.Randomizer.Attributes
+namespace MMR.Randomizer.Attributes;
+
+[AttributeUsage(AttributeTargets.Field)]
+public class StartingItemSkullAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Field)]
-    public class StartingItemSkullAttribute : Attribute
-    {
-    }
 }

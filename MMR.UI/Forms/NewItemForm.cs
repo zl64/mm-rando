@@ -8,30 +8,29 @@ using System.Runtime.Versioning;
 using System.Text;
 using System.Windows.Forms;
 
-namespace MMR.UI.Forms
+namespace MMR.UI.Forms;
+
+[SupportedOSPlatform("windows")]
+public partial class NewItemForm : Form
 {
-    [SupportedOSPlatform("windows")]
-    public partial class NewItemForm : Form
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public string ReturnValue { get; set; }
+
+    public NewItemForm()
     {
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public string ReturnValue { get; set; }
+        InitializeComponent();
+    }
 
-        public NewItemForm()
-        {
-            InitializeComponent();
-        }
+    private void button1_Click(object sender, EventArgs e)
+    {
+        this.ReturnValue = newItemText.Text;
+        this.DialogResult = DialogResult.OK;
+        this.Close();
+    }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            this.ReturnValue = newItemText.Text;
-            this.DialogResult = DialogResult.OK;
-            this.Close();
-        }
-
-        private void button2_Click(object sender, EventArgs e)
-        {
-            this.DialogResult = DialogResult.Cancel;
-            this.Close();
-        }
+    private void button2_Click(object sender, EventArgs e)
+    {
+        this.DialogResult = DialogResult.Cancel;
+        this.Close();
     }
 }

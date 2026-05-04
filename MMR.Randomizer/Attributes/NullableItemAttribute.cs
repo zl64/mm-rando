@@ -1,8 +1,7 @@
 ﻿using System;
 
-namespace MMR.Randomizer.Attributes
+namespace MMR.Randomizer.Attributes;
+
+public class NullableItemAttribute : Attribute
 {
-    public class NullableItemAttribute : Attribute
-    {
-    }
 }

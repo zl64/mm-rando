@@ -2,21 +2,20 @@
 using MMR.Randomizer.Attributes.Setting;
 using System.ComponentModel;
 
-namespace MMR.Randomizer.Models.Settings
+namespace MMR.Randomizer.Models.Settings;
+
+public enum DamageMode
 {
-    public enum DamageMode
-    {
-        Default,
+    Default,
 
-        Double,
+    Double,
 
-        Quadruple,
+    Quadruple,
 
-        Octuple,
+    Octuple,
 
-        [SettingName("One-Hit KO")]
-        OHKO,
+    [SettingName("One-Hit KO")]
+    OHKO,
 
-        Doom,
-    }
+    Doom,
 }

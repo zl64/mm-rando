@@ -3,20 +3,19 @@ using System.Threading.Tasks;
 using MMR.DiscordBot.Data.Entities;
 using ServiceStack.OrmLite;
 
-namespace MMR.DiscordBot.Data.Repositories
-{
-    public class GuildModRepository : BaseRepository<GuildModEntity>
-    {
-        public GuildModRepository(ConnectionFactory connectionFactory) : base(connectionFactory)
-        {
-        }
+namespace MMR.DiscordBot.Data.Repositories;
 
-        public async Task<IList<GuildModEntity>> ListByGuildId(ulong guildId)
+public class GuildModRepository : BaseRepository<GuildModEntity>
+{
+    public GuildModRepository(ConnectionFactory connectionFactory) : base(connectionFactory)
+    {
+    }
+
+    public async Task<IList<GuildModEntity>> ListByGuildId(ulong guildId)
+    {
+        using (var db = ConnectionFactory.Open())
         {
-            using (var db = ConnectionFactory.Open())
-            {
-                return await db.SelectAsync<GuildModEntity>(gm => gm.GuildId == guildId);
-            }
+            return await db.SelectAsync<GuildModEntity>(gm => gm.GuildId == guildId);
         }
     }
 }

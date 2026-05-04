@@ -19,409 +19,408 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MMR.Randomizer.Utils
+namespace MMR.Randomizer.Utils;
+
+public static class LogicUtils
 {
-    public static class LogicUtils
+    public static LogicFile ReadRulesetFromResources(LogicMode mode, string userLogicFileName)
     {
-        public static LogicFile ReadRulesetFromResources(LogicMode mode, string userLogicFileName)
+        if (mode == LogicMode.Casual)
         {
-            if (mode == LogicMode.Casual)
+            return LogicFile.FromJson(Properties.Resources.REQ_CASUAL);
+        }
+        else if (mode == LogicMode.Glitched)
+        {
+            return LogicFile.FromJson(Properties.Resources.REQ_GLITCH);
+        }
+        else if (mode == LogicMode.UserLogic && File.Exists(userLogicFileName))
+        {
+            using (StreamReader Req = new StreamReader(File.OpenRead(userLogicFileName)))
             {
-                return LogicFile.FromJson(Properties.Resources.REQ_CASUAL);
-            }
-            else if (mode == LogicMode.Glitched)
-            {
-                return LogicFile.FromJson(Properties.Resources.REQ_GLITCH);
-            }
-            else if (mode == LogicMode.UserLogic && File.Exists(userLogicFileName))
-            {
-                using (StreamReader Req = new StreamReader(File.OpenRead(userLogicFileName)))
+                var logic = Req.ReadToEnd();
+
+                var logicConfiguration = Configuration.FromJson(logic);
+                if (logicConfiguration.GameplaySettings != null)
                 {
-                    var logic = Req.ReadToEnd();
+                    logic = logicConfiguration.GameplaySettings.Logic;
+                }
 
-                    var logicConfiguration = Configuration.FromJson(logic);
-                    if (logicConfiguration.GameplaySettings != null)
+                return LogicFile.FromJson(logic);
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Populates the item list using the lines from a logic file, processes them 4 lines per item. 
+    /// </summary>
+    /// <param name="data">The lines from a logic file</param>
+    public static ItemList PopulateItemListFromLogicData(LogicFile logicFile)
+    {
+        var itemList = new ItemList();
+        if (logicFile.Version != Migrator.CurrentVersion)
+        {
+            throw new Exception("Logic file is out of date or invalid. Open it in the Logic Editor to bring it up to date.");
+        }
+
+        var logic = logicFile.Logic;
+        for (var i = 0; i < logic.Count; i++)
+        {
+            var logicItem = logic[i];
+            var item = (Item)i;
+            if (Enum.IsDefined(item) && item.ToString() != logicItem.Id)
+            {
+                throw new Exception($"Logic doesn't line up with code at {logicItem.Id}");
+            }
+            itemList.Add(new ItemObject
+            {
+                ID = i,
+                Name = logicItem.Id,
+                TimeNeeded = (int)logicItem.TimeNeeded,
+                TimeAvailable = logicItem.TimeAvailable > 0 ? (int)logicItem.TimeAvailable : 63,
+                TimeSetup = (int)logicItem.TimeSetup,
+                IsTrick = logicItem.IsTrick,
+                TrickTooltip = logicItem.TrickTooltip,
+                DependsOnItems = logicItem.RequiredItems.Select(item => (Item)logic.FindIndex(li => li.Id == item)).ToList(),
+                Conditionals = logicItem.ConditionalItems.Select(c => c.Select(item => (Item)logic.FindIndex(li => li.Id == item)).ToList()).ToList(),
+                TrickCategory = logicItem.TrickCategory,
+                TrickUrl = logicItem.TrickUrl,
+                SettingExpression = logicItem.SettingExpression,
+            });
+        }
+
+        return itemList;
+    }
+
+    /// <summary>
+    /// Populates item list without logic. Default TimeAvailable = 63
+    /// </summary>
+    public static ItemList PopulateItemListWithoutLogic()
+    {
+        var itemList = new ItemList();
+        foreach (var item in Enum.GetValues<Item>())
+        {
+            if (item < 0)
+            {
+                continue;
+            }
+
+            var currentItem = new ItemObject
+            {
+                ID = (int)item,
+                Name = item.ToString(),
+                TimeAvailable = 63
+            };
+
+            itemList.Add(currentItem);
+        }
+        return itemList;
+    }
+
+    public static Dictionary<GossipQuote, ReadOnlyCollection<Item>> GetGossipStoneRequirements(IEnumerable<GossipQuote> gossipQuotes, ItemList itemList, List<ItemLogic> logic, GameplaySettings settings, Dictionary<Item, LogicPaths> checkedLocations)
+    {
+        return gossipQuotes
+            .Where(gq => gq.HasAttribute<GossipStoneAttribute>())
+            .ToDictionary(gq => gq, gq => GetGossipStoneRequirement(gq, itemList, logic, settings, checkedLocations));
+    }
+
+    public static ReadOnlyCollection<Item> GetGossipStoneRequirement(GossipQuote gossipQuote, ItemList itemList, List<ItemLogic> logic, GameplaySettings settings, Dictionary<Item, LogicPaths> checkedLocations)
+    {
+        var gossipStoneItem = gossipQuote.GetAttribute<GossipStoneAttribute>().Item;
+        return GetImportantLocations(itemList, settings, gossipStoneItem, logic, checkedLocations: checkedLocations)?.Required;
+    }
+
+    public class LogicPaths
+    {
+        public ReadOnlyCollection<Item> Required { get; set; }
+        public ReadOnlyCollection<Item> Important { get; set; }
+        public ReadOnlyCollection<Item> RequiredSongLocations { get; set; }
+    }
+
+    public static void Simplify<T>(List<T> logicPaths) where T : IEnumerable<Item>
+    {
+        Simplify(logicPaths, (list) => list);
+    }
+
+    public static void Simplify<T, T2>(List<T> logicPaths, Func<T, T2> selector) where T2 : IEnumerable<Item>
+    {
+        if (logicPaths.Count > 1)
+        {
+            for (var i = logicPaths.Count - 1; i >= 0; i--)
+            {
+                var currentLogicPath = selector(logicPaths[i]);
+                for (var j = i - 1; j >= 0; j--)
+                {
+                    var otherLogicPath = selector(logicPaths[j]);
+                    if (!otherLogicPath.Except(currentLogicPath).Any())
                     {
-                        logic = logicConfiguration.GameplaySettings.Logic;
+                        logicPaths.RemoveAt(i);
+                        break;
                     }
-
-                    return LogicFile.FromJson(logic);
+                    if (!currentLogicPath.Except(otherLogicPath).Any())
+                    {
+                        logicPaths.RemoveAt(j);
+                        i--;
+                    }
                 }
             }
+        }
+    }
 
+    public static LogicPaths GetImportantLocations(ItemList itemList, GameplaySettings settings, Item location, List<ItemLogic> itemLogic, int timeAvailable = 63, List<Item> logicPath = null, Dictionary<Item, LogicPaths> checkedLocations = null, Dictionary<Item, ItemObject> itemsByLocation = null, CancellationTokenSource cts = null, params Item[] exclude)
+    {
+        if (settings.LogicMode == LogicMode.NoLogic)
+        {
+            return new LogicPaths();
+        }
+        cts?.Token.ThrowIfCancellationRequested();
+        if (itemsByLocation == null)
+        {
+            itemsByLocation = itemList.ToDictionary(io => io.NewLocation ?? io.Item);
+        }
+        if (logicPath == null)
+        {
+            logicPath = new List<Item>();
+        }
+        if (logicPath.Contains(location))
+        {
             return null;
         }
-
-        /// <summary>
-        /// Populates the item list using the lines from a logic file, processes them 4 lines per item. 
-        /// </summary>
-        /// <param name="data">The lines from a logic file</param>
-        public static ItemList PopulateItemListFromLogicData(LogicFile logicFile)
+        var requiredSongLocations = new List<Item>();
+        if (exclude.Contains(location))
         {
-            var itemList = new ItemList();
-            if (logicFile.Version != Migrator.CurrentVersion)
+            if (!location.IsPlacementHighlyRestricted(settings))
             {
-                throw new Exception("Logic file is out of date or invalid. Open it in the Logic Editor to bring it up to date.");
+                return null;
             }
-
-            var logic = logicFile.Logic;
-            for (var i = 0; i < logic.Count; i++)
+            requiredSongLocations.Add(location);
+            if (logicPath.Any(i => !i.IsFake() && itemList[i].IsRandomized && !ItemUtils.IsRegionRestricted(settings, itemsByLocation[i].Item) && !i.IsPlacementHighlyRestricted(settings)))
             {
-                var logicItem = logic[i];
-                var item = (Item)i;
-                if (Enum.IsDefined(item) && item.ToString() != logicItem.Id)
-                {
-                    throw new Exception($"Logic doesn't line up with code at {logicItem.Id}");
-                }
-                itemList.Add(new ItemObject
-                {
-                    ID = i,
-                    Name = logicItem.Id,
-                    TimeNeeded = (int)logicItem.TimeNeeded,
-                    TimeAvailable = logicItem.TimeAvailable > 0 ? (int)logicItem.TimeAvailable : 63,
-                    TimeSetup = (int)logicItem.TimeSetup,
-                    IsTrick = logicItem.IsTrick,
-                    TrickTooltip = logicItem.TrickTooltip,
-                    DependsOnItems = logicItem.RequiredItems.Select(item => (Item)logic.FindIndex(li => li.Id == item)).ToList(),
-                    Conditionals = logicItem.ConditionalItems.Select(c => c.Select(item => (Item)logic.FindIndex(li => li.Id == item)).ToList()).ToList(),
-                    TrickCategory = logicItem.TrickCategory,
-                    TrickUrl = logicItem.TrickUrl,
-                    SettingExpression = logicItem.SettingExpression,
-                });
+                return null;
             }
-
-            return itemList;
         }
-
-        /// <summary>
-        /// Populates item list without logic. Default TimeAvailable = 63
-        /// </summary>
-        public static ItemList PopulateItemListWithoutLogic()
+        if (location != Item.OtherEpona)
         {
-            var itemList = new ItemList();
-            foreach (var item in Enum.GetValues<Item>())
+            logicPath.Add(location);
+        }
+        if (checkedLocations == null)
+        {
+            checkedLocations = new Dictionary<Item, LogicPaths>();
+        }
+        var checkedLocation = checkedLocations.GetValueOrDefault(location);
+        if (checkedLocation != null && !checkedLocation.Important.Intersect(exclude).Any() && !exclude.Contains(location))
+        {
+            if (logicPath.Intersect(checkedLocation.Required).Any())
             {
-                if (item < 0)
+                return null;
+            }
+            return checkedLocation;
+        }
+        var locationLogic = itemLogic[(int)location];
+        var io = itemsByLocation[location];
+        if (ItemUtils.IsLogicallyJunk(io.Item))
+        {
+            timeAvailable = (int)TimeOfDay.All;
+        }
+        else if ((io.Item.IsTemporary() || location.IsFake()) && timeAvailable < locationLogic.TimeAvailable)
+        {
+            timeAvailable &= locationLogic.TimeAvailable;
+            if (timeAvailable == 0)
+            {
+                return null;
+            }
+        }
+        else
+        {
+            timeAvailable = locationLogic.TimeAvailable;
+        }
+        var required = new List<Item>();
+        var important = new List<Item>();
+        if (locationLogic.RequiredItemIds != null && locationLogic.RequiredItemIds.Any())
+        {
+            if (locationLogic.RequiredItemIds.Contains((int)Item.OtherCredits))
+            {
+                return null;
+            }
+
+            foreach (var requiredItemId in locationLogic.RequiredItemIds.Cast<Item>())
+            {
+                if (itemList[requiredItemId].Item != requiredItemId)
                 {
                     continue;
                 }
 
-                var currentItem = new ItemObject
-                {
-                    ID = (int)item,
-                    Name = item.ToString(),
-                    TimeAvailable = 63
-                };
+                var requiredLocation = itemList[requiredItemId].NewLocation ?? requiredItemId;
 
-                itemList.Add(currentItem);
-            }
-            return itemList;
-        }
-
-        public static Dictionary<GossipQuote, ReadOnlyCollection<Item>> GetGossipStoneRequirements(IEnumerable<GossipQuote> gossipQuotes, ItemList itemList, List<ItemLogic> logic, GameplaySettings settings, Dictionary<Item, LogicPaths> checkedLocations)
-        {
-            return gossipQuotes
-                .Where(gq => gq.HasAttribute<GossipStoneAttribute>())
-                .ToDictionary(gq => gq, gq => GetGossipStoneRequirement(gq, itemList, logic, settings, checkedLocations));
-        }
-
-        public static ReadOnlyCollection<Item> GetGossipStoneRequirement(GossipQuote gossipQuote, ItemList itemList, List<ItemLogic> logic, GameplaySettings settings, Dictionary<Item, LogicPaths> checkedLocations)
-        {
-            var gossipStoneItem = gossipQuote.GetAttribute<GossipStoneAttribute>().Item;
-            return GetImportantLocations(itemList, settings, gossipStoneItem, logic, checkedLocations: checkedLocations)?.Required;
-        }
-
-        public class LogicPaths
-        {
-            public ReadOnlyCollection<Item> Required { get; set; }
-            public ReadOnlyCollection<Item> Important { get; set; }
-            public ReadOnlyCollection<Item> RequiredSongLocations { get; set; }
-        }
-
-        public static void Simplify<T>(List<T> logicPaths) where T : IEnumerable<Item>
-        {
-            Simplify(logicPaths, (list) => list);
-        }
-
-        public static void Simplify<T, T2>(List<T> logicPaths, Func<T, T2> selector) where T2 : IEnumerable<Item>
-        {
-            if (logicPaths.Count > 1)
-            {
-                for (var i = logicPaths.Count - 1; i >= 0; i--)
-                {
-                    var currentLogicPath = selector(logicPaths[i]);
-                    for (var j = i - 1; j >= 0; j--)
-                    {
-                        var otherLogicPath = selector(logicPaths[j]);
-                        if (!otherLogicPath.Except(currentLogicPath).Any())
-                        {
-                            logicPaths.RemoveAt(i);
-                            break;
-                        }
-                        if (!currentLogicPath.Except(otherLogicPath).Any())
-                        {
-                            logicPaths.RemoveAt(j);
-                            i--;
-                        }
-                    }
-                }
-            }
-        }
-
-        public static LogicPaths GetImportantLocations(ItemList itemList, GameplaySettings settings, Item location, List<ItemLogic> itemLogic, int timeAvailable = 63, List<Item> logicPath = null, Dictionary<Item, LogicPaths> checkedLocations = null, Dictionary<Item, ItemObject> itemsByLocation = null, CancellationTokenSource cts = null, params Item[] exclude)
-        {
-            if (settings.LogicMode == LogicMode.NoLogic)
-            {
-                return new LogicPaths();
-            }
-            cts?.Token.ThrowIfCancellationRequested();
-            if (itemsByLocation == null)
-            {
-                itemsByLocation = itemList.ToDictionary(io => io.NewLocation ?? io.Item);
-            }
-            if (logicPath == null)
-            {
-                logicPath = new List<Item>();
-            }
-            if (logicPath.Contains(location))
-            {
-                return null;
-            }
-            var requiredSongLocations = new List<Item>();
-            if (exclude.Contains(location))
-            {
-                if (!location.IsPlacementHighlyRestricted(settings))
-                {
-                    return null;
-                }
-                requiredSongLocations.Add(location);
-                if (logicPath.Any(i => !i.IsFake() && itemList[i].IsRandomized && !ItemUtils.IsRegionRestricted(settings, itemsByLocation[i].Item) && !i.IsPlacementHighlyRestricted(settings)))
-                {
-                    return null;
-                }
-            }
-            if (location != Item.OtherEpona)
-            {
-                logicPath.Add(location);
-            }
-            if (checkedLocations == null)
-            {
-                checkedLocations = new Dictionary<Item, LogicPaths>();
-            }
-            var checkedLocation = checkedLocations.GetValueOrDefault(location);
-            if (checkedLocation != null && !checkedLocation.Important.Intersect(exclude).Any() && !exclude.Contains(location))
-            {
-                if (logicPath.Intersect(checkedLocation.Required).Any())
-                {
-                    return null;
-                }
-                return checkedLocation;
-            }
-            var locationLogic = itemLogic[(int)location];
-            var io = itemsByLocation[location];
-            if (ItemUtils.IsLogicallyJunk(io.Item))
-            {
-                timeAvailable = (int)TimeOfDay.All;
-            }
-            else if ((io.Item.IsTemporary() || location.IsFake()) && timeAvailable < locationLogic.TimeAvailable)
-            {
-                timeAvailable &= locationLogic.TimeAvailable;
-                if (timeAvailable == 0)
-                {
-                    return null;
-                }
-            }
-            else
-            {
-                timeAvailable = locationLogic.TimeAvailable;
-            }
-            var required = new List<Item>();
-            var important = new List<Item>();
-            if (locationLogic.RequiredItemIds != null && locationLogic.RequiredItemIds.Any())
-            {
-                if (locationLogic.RequiredItemIds.Contains((int)Item.OtherCredits))
+                var childPaths = GetImportantLocations(itemList, settings, requiredLocation, itemLogic, timeAvailable, logicPath.ToList(), checkedLocations, itemsByLocation, cts, exclude);
+                if (childPaths == null)
                 {
                     return null;
                 }
 
-                foreach (var requiredItemId in locationLogic.RequiredItemIds.Cast<Item>())
+                if (logicPath[0] != Item.OtherCredits || !requiredLocation.IsPlacementHighlyRestricted(settings) || logicPath.Any(i => !i.IsFake() && itemList[i].IsRandomized && !ItemUtils.IsRegionRestricted(settings, itemsByLocation[i].Item) && !i.IsPlacementHighlyRestricted(settings)))
                 {
-                    if (itemList[requiredItemId].Item != requiredItemId)
+                    required.Add(requiredLocation);
+                }
+                important.Add(requiredLocation);
+                if (childPaths.Required != null)
+                {
+                    required.AddRange(childPaths.Required);
+                }
+                if (childPaths.Important != null)
+                {
+                    important.AddRange(childPaths.Important);
+                }
+                if (childPaths.RequiredSongLocations != null)
+                {
+                    requiredSongLocations.AddRange(childPaths.RequiredSongLocations);
+                }
+            }
+        }
+        if (locationLogic.ConditionalItemIds != null && locationLogic.ConditionalItemIds.Any())
+        {
+            var logicPaths = new List<LogicPaths>();
+            foreach (var conditions in locationLogic.ConditionalItemIds)
+            {
+                if (conditions.Contains((int)Item.OtherCredits))
+                {
+                    continue;
+                }
+
+                var conditionalRequired = new List<Item>();
+                var conditionalImportant = new List<Item>();
+                var conditionalRequiredSongLocations = new List<Item>();
+                foreach (var conditionalItemId in conditions.Cast<Item>())
+                {
+                    if (itemList[conditionalItemId].Item != conditionalItemId)
                     {
                         continue;
                     }
 
-                    var requiredLocation = itemList[requiredItemId].NewLocation ?? requiredItemId;
+                    var conditionalLocation = itemList[conditionalItemId].NewLocation ?? conditionalItemId;
 
-                    var childPaths = GetImportantLocations(itemList, settings, requiredLocation, itemLogic, timeAvailable, logicPath.ToList(), checkedLocations, itemsByLocation, cts, exclude);
+                    var childPaths = GetImportantLocations(itemList, settings, conditionalLocation, itemLogic, timeAvailable, logicPath.ToList(), checkedLocations, itemsByLocation, cts, exclude);
                     if (childPaths == null)
                     {
-                        return null;
+                        conditionalRequired = null;
+                        conditionalImportant = null;
+                        break;
                     }
 
-                    if (logicPath[0] != Item.OtherCredits || !requiredLocation.IsPlacementHighlyRestricted(settings) || logicPath.Any(i => !i.IsFake() && itemList[i].IsRandomized && !ItemUtils.IsRegionRestricted(settings, itemsByLocation[i].Item) && !i.IsPlacementHighlyRestricted(settings)))
+                    if (logicPath[0] != Item.OtherCredits || !conditionalLocation.IsPlacementHighlyRestricted(settings) || logicPath.Any(i => !i.IsFake() && itemList[i].IsRandomized && !ItemUtils.IsRegionRestricted(settings, itemsByLocation[i].Item) && !i.IsPlacementHighlyRestricted(settings)))
                     {
-                        required.Add(requiredLocation);
+                        conditionalRequired.Add(conditionalLocation);
                     }
-                    important.Add(requiredLocation);
+                    conditionalImportant.Add(conditionalLocation);
                     if (childPaths.Required != null)
                     {
-                        required.AddRange(childPaths.Required);
+                        conditionalRequired.AddRange(childPaths.Required);
                     }
                     if (childPaths.Important != null)
                     {
-                        important.AddRange(childPaths.Important);
+                        conditionalImportant.AddRange(childPaths.Important);
                     }
                     if (childPaths.RequiredSongLocations != null)
                     {
-                        requiredSongLocations.AddRange(childPaths.RequiredSongLocations);
+                        conditionalRequiredSongLocations.AddRange(childPaths.RequiredSongLocations);
                     }
                 }
-            }
-            if (locationLogic.ConditionalItemIds != null && locationLogic.ConditionalItemIds.Any())
-            {
-                var logicPaths = new List<LogicPaths>();
-                foreach (var conditions in locationLogic.ConditionalItemIds)
+
+                if (conditionalRequired != null && conditionalImportant != null)
                 {
-                    if (conditions.Contains((int)Item.OtherCredits))
+                    logicPaths.Add(new LogicPaths
                     {
-                        continue;
-                    }
-
-                    var conditionalRequired = new List<Item>();
-                    var conditionalImportant = new List<Item>();
-                    var conditionalRequiredSongLocations = new List<Item>();
-                    foreach (var conditionalItemId in conditions.Cast<Item>())
-                    {
-                        if (itemList[conditionalItemId].Item != conditionalItemId)
-                        {
-                            continue;
-                        }
-
-                        var conditionalLocation = itemList[conditionalItemId].NewLocation ?? conditionalItemId;
-
-                        var childPaths = GetImportantLocations(itemList, settings, conditionalLocation, itemLogic, timeAvailable, logicPath.ToList(), checkedLocations, itemsByLocation, cts, exclude);
-                        if (childPaths == null)
-                        {
-                            conditionalRequired = null;
-                            conditionalImportant = null;
-                            break;
-                        }
-
-                        if (logicPath[0] != Item.OtherCredits || !conditionalLocation.IsPlacementHighlyRestricted(settings) || logicPath.Any(i => !i.IsFake() && itemList[i].IsRandomized && !ItemUtils.IsRegionRestricted(settings, itemsByLocation[i].Item) && !i.IsPlacementHighlyRestricted(settings)))
-                        {
-                            conditionalRequired.Add(conditionalLocation);
-                        }
-                        conditionalImportant.Add(conditionalLocation);
-                        if (childPaths.Required != null)
-                        {
-                            conditionalRequired.AddRange(childPaths.Required);
-                        }
-                        if (childPaths.Important != null)
-                        {
-                            conditionalImportant.AddRange(childPaths.Important);
-                        }
-                        if (childPaths.RequiredSongLocations != null)
-                        {
-                            conditionalRequiredSongLocations.AddRange(childPaths.RequiredSongLocations);
-                        }
-                    }
-
-                    if (conditionalRequired != null && conditionalImportant != null)
-                    {
-                        logicPaths.Add(new LogicPaths
-                        {
-                            Required = conditionalRequired.AsReadOnly(),
-                            Important = conditionalImportant.AsReadOnly(),
-                            RequiredSongLocations = conditionalRequiredSongLocations.AsReadOnly()
-                        });
-                    }
+                        Required = conditionalRequired.AsReadOnly(),
+                        Important = conditionalImportant.AsReadOnly(),
+                        RequiredSongLocations = conditionalRequiredSongLocations.AsReadOnly()
+                    });
                 }
-                if (!logicPaths.Any())
+            }
+            if (!logicPaths.Any())
+            {
+                return null;
+            }
+
+            Simplify(logicPaths, lp => lp.Important.Except(important));
+
+            required.AddRange(logicPaths.Select(lp => lp.Required.AsEnumerable()).Aggregate((a, b) => a.Intersect(b)));
+            important.AddRange(logicPaths.SelectMany(lp => lp.Required.Union(lp.Important)).Distinct());
+            requiredSongLocations.AddRange(logicPaths.SelectMany(lp => lp.RequiredSongLocations).Distinct());
+        }
+        var result = new LogicPaths
+        {
+            Required = required.Distinct().ToList().AsReadOnly(),
+            Important = important.Union(required).Distinct().ToList().AsReadOnly(),
+            RequiredSongLocations = requiredSongLocations.Distinct().ToList().AsReadOnly()
+        };
+        if (location.Location() != null || timeAvailable == (int)TimeOfDay.All)
+        {
+            checkedLocations[location] = result;
+        }
+        return result;
+    }
+
+    public static Expression<Func<GameplaySettings, bool>> ParseSettingExpression(string expression)
+    {
+        return Interpreter.ParseAsExpression<Func<GameplaySettings, bool>>(expression, "settings");
+    }
+
+    public static bool IsSettingEnabled(GameplaySettings settings, string expression)
+    {
+        if (string.IsNullOrWhiteSpace(expression))
+        {
+            return true;
+        }
+        return ParseSettingExpression(expression).Compile()(settings);
+    }
+
+    private static Interpreter Interpreter;
+
+    static LogicUtils()
+    {
+        Interpreter = new Interpreter()
+            .EnableAssignment(AssignmentOperators.None);
+
+        ReferenceEnums(Interpreter, typeof(GameplaySettings));
+    }
+
+    private static void ReferenceEnums(Interpreter interpreter, Type type)
+    {
+        void ProcessPropertyType(Type propertyType)
+        {
+            if (propertyType == typeof(string) || propertyType == typeof(AsmOptionsGameplay))
+            {
+
+            }
+            else if (propertyType.IsGenericType)
+            {
+                if (propertyType.GetGenericTypeDefinition() == typeof(Dictionary<,>))
                 {
-                    return null;
+                    var keyType = propertyType.GetGenericArguments()[0];
+                    var valueType = propertyType.GetGenericArguments()[1];
+                    ProcessPropertyType(keyType);
+                    ProcessPropertyType(valueType);
                 }
-
-                Simplify(logicPaths, lp => lp.Important.Except(important));
-
-                required.AddRange(logicPaths.Select(lp => lp.Required.AsEnumerable()).Aggregate((a, b) => a.Intersect(b)));
-                important.AddRange(logicPaths.SelectMany(lp => lp.Required.Union(lp.Important)).Distinct());
-                requiredSongLocations.AddRange(logicPaths.SelectMany(lp => lp.RequiredSongLocations).Distinct());
+                else if (propertyType.IsAssignableTo(typeof(IEnumerable)))
+                {
+                    var itemType = propertyType.GetGenericArguments()[0];
+                    ProcessPropertyType(itemType);
+                }
             }
-            var result = new LogicPaths
+            else if (propertyType.IsEnum)
             {
-                Required = required.Distinct().ToList().AsReadOnly(),
-                Important = important.Union(required).Distinct().ToList().AsReadOnly(),
-                RequiredSongLocations = requiredSongLocations.Distinct().ToList().AsReadOnly()
-            };
-            if (location.Location() != null || timeAvailable == (int)TimeOfDay.All)
-            {
-                checkedLocations[location] = result;
+                interpreter.Reference(propertyType);
             }
-            return result;
+            else if (propertyType.IsClass)
+            {
+                ReferenceEnums(interpreter, propertyType);
+            }
         }
 
-        public static Expression<Func<GameplaySettings, bool>> ParseSettingExpression(string expression)
+        foreach (var property in type.GetProperties())
         {
-            return Interpreter.ParseAsExpression<Func<GameplaySettings, bool>>(expression, "settings");
-        }
-
-        public static bool IsSettingEnabled(GameplaySettings settings, string expression)
-        {
-            if (string.IsNullOrWhiteSpace(expression))
-            {
-                return true;
-            }
-            return ParseSettingExpression(expression).Compile()(settings);
-        }
-
-        private static Interpreter Interpreter;
-
-        static LogicUtils()
-        {
-            Interpreter = new Interpreter()
-                .EnableAssignment(AssignmentOperators.None);
-
-            ReferenceEnums(Interpreter, typeof(GameplaySettings));
-        }
-
-        private static void ReferenceEnums(Interpreter interpreter, Type type)
-        {
-            void ProcessPropertyType(Type propertyType)
-            {
-                if (propertyType == typeof(string) || propertyType == typeof(AsmOptionsGameplay))
-                {
-
-                }
-                else if (propertyType.IsGenericType)
-                {
-                    if (propertyType.GetGenericTypeDefinition() == typeof(Dictionary<,>))
-                    {
-                        var keyType = propertyType.GetGenericArguments()[0];
-                        var valueType = propertyType.GetGenericArguments()[1];
-                        ProcessPropertyType(keyType);
-                        ProcessPropertyType(valueType);
-                    }
-                    else if (propertyType.IsAssignableTo(typeof(IEnumerable)))
-                    {
-                        var itemType = propertyType.GetGenericArguments()[0];
-                        ProcessPropertyType(itemType);
-                    }
-                }
-                else if (propertyType.IsEnum)
-                {
-                    interpreter.Reference(propertyType);
-                }
-                else if (propertyType.IsClass)
-                {
-                    ReferenceEnums(interpreter, propertyType);
-                }
-            }
-
-            foreach (var property in type.GetProperties())
-            {
-                ProcessPropertyType(property.PropertyType);
-            }
+            ProcessPropertyType(property.PropertyType);
         }
     }
 }

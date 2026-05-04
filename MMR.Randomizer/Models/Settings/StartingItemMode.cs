@@ -1,9 +1,8 @@
-﻿namespace MMR.Randomizer.Models.Settings
+﻿namespace MMR.Randomizer.Models.Settings;
+
+public enum StartingItemMode
 {
-    public enum StartingItemMode
-    {
-        None,
-        Random,
-        AllowTemporaryItems,
-    }
+    None,
+    Random,
+    AllowTemporaryItems,
 }

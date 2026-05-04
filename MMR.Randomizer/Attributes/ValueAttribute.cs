@@ -1,14 +1,13 @@
 ﻿using System;
 
-namespace MMR.Randomizer.Attributes
-{
-    public class ValueAttribute : Attribute
-    {
-        public object Value { get; }
+namespace MMR.Randomizer.Attributes;
 
-        public ValueAttribute(object value)
-        {
-            Value = value;
-        }
+public class ValueAttribute : Attribute
+{
+    public object Value { get; }
+
+    public ValueAttribute(object value)
+    {
+        Value = value;
     }
 }

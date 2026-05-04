@@ -1,12 +1,11 @@
-﻿namespace MMR.Randomizer.Models
+﻿namespace MMR.Randomizer.Models;
+
+public enum DamageEffect
 {
-    public enum DamageEffect
-    {
-        Default,
-        Fire,
-        Ice,
-        Shock,
-        Knockdown,
-        Random
-    }
+    Default,
+    Fire,
+    Ice,
+    Shock,
+    Knockdown,
+    Random
 }

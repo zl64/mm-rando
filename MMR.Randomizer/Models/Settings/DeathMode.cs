@@ -1,11 +1,10 @@
-﻿namespace MMR.Randomizer.Models.Settings
+﻿namespace MMR.Randomizer.Models.Settings;
+
+public enum DeathMode
 {
-    public enum DeathMode
-    {
-        Default,
+    Default,
 
-        MoonCrash,
+    MoonCrash,
 
-        ReduceMaxHearts,
-    }
+    ReduceMaxHearts,
 }

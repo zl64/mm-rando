@@ -1,11 +1,10 @@
 ﻿using System;
 
-namespace MMR.Randomizer.Patch
+namespace MMR.Randomizer.Patch;
+
+[Flags]
+public enum PatchFlags : ushort
 {
-    [Flags]
-    public enum PatchFlags : ushort
-    {
-        None = 0,
-        IsStatic = 1,
-    }
+    None = 0,
+    IsStatic = 1,
 }

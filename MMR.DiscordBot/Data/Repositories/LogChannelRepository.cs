@@ -1,11 +1,10 @@
 ﻿using MMR.DiscordBot.Data.Entities;
 
-namespace MMR.DiscordBot.Data.Repositories
+namespace MMR.DiscordBot.Data.Repositories;
+
+public class LogChannelRepository : BaseRepository<LogChannelEntity>
 {
-    public class LogChannelRepository : BaseRepository<LogChannelEntity>
+    public LogChannelRepository(ConnectionFactory connectionFactory) : base(connectionFactory)
     {
-        public LogChannelRepository(ConnectionFactory connectionFactory) : base(connectionFactory)
-        {
-        }
     }
 }

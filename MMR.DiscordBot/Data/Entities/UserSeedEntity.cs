@@ -1,16 +1,15 @@
 ﻿using System;
 using ServiceStack.DataAnnotations;
 
-namespace MMR.DiscordBot.Data.Entities
+namespace MMR.DiscordBot.Data.Entities;
+
+[Alias("UserSeeds")]
+public class UserSeedEntity
 {
-    [Alias("UserSeeds")]
-    public class UserSeedEntity
-    {
-        [PrimaryKey]
-        public ulong UserId { get; set; }
+    [PrimaryKey]
+    public ulong UserId { get; set; }
 
-        public DateTime LastSeedRequest { get; set; }
+    public DateTime LastSeedRequest { get; set; }
 
-        public string Version { get; set; }
-    }
+    public string Version { get; set; }
 }

@@ -1,9 +1,8 @@
-﻿namespace MMR.Randomizer.Models
+﻿namespace MMR.Randomizer.Models;
+
+public class NameCostPair
 {
-    public class NameCostPair
-    {
-        public string Name { get; set; }
-        public ushort Cost { get; set; }
-    }
+    public string Name { get; set; }
+    public ushort Cost { get; set; }
 }
 

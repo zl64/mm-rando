@@ -1,11 +1,10 @@
-﻿namespace MMR.Randomizer.Models.Settings
+﻿namespace MMR.Randomizer.Models.Settings;
+
+public enum MovementMode
 {
-    public enum MovementMode
-    {
-        Default,
-        HighSpeed,
-        SuperLowGravity,
-        LowGravity,
-        HighGravity
-    }
+    Default,
+    HighSpeed,
+    SuperLowGravity,
+    LowGravity,
+    HighGravity
 }

@@ -1,10 +1,9 @@
 ﻿using System;
 using System.IO;
 
-namespace MMR.DiscordBot.Services
+namespace MMR.DiscordBot.Services;
+
+public class MMRBetaService : MMRBaseService
 {
-    public class MMRBetaService : MMRBaseService
-    {
-        protected override string Version => "beta";
-    }
+    protected override string Version => "beta";
 }

@@ -3,30 +3,29 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MMR.CLI
+namespace MMR.CLI;
+
+partial class Program
 {
-    partial class Program
+    public class ProgressBarProgressReporter : IProgressReporter
     {
-        public class ProgressBarProgressReporter : IProgressReporter
+        private readonly ProgressBar _progressBar;
+        private readonly int? _maxImportanceWait;
+
+        public ProgressBarProgressReporter(ProgressBar progressBar, int? maxImportanceWait)
         {
-            private readonly ProgressBar _progressBar;
-            private readonly int? _maxImportanceWait;
+            _progressBar = progressBar;
+            _maxImportanceWait = maxImportanceWait;
+        }
 
-            public ProgressBarProgressReporter(ProgressBar progressBar, int? maxImportanceWait)
+        public void ReportProgress(int percentProgress, string message, CancellationTokenSource ctsItemImportance)
+        {
+            //_progressBar.WriteLine(message);
+            if (ctsItemImportance != null && _maxImportanceWait.HasValue)
             {
-                _progressBar = progressBar;
-                _maxImportanceWait = maxImportanceWait;
+                ctsItemImportance.CancelAfter(TimeSpan.FromSeconds(_maxImportanceWait.Value));
             }
-
-            public void ReportProgress(int percentProgress, string message, CancellationTokenSource ctsItemImportance)
-            {
-                //_progressBar.WriteLine(message);
-                if (ctsItemImportance != null && _maxImportanceWait.HasValue)
-                {
-                    ctsItemImportance.CancelAfter(TimeSpan.FromSeconds(_maxImportanceWait.Value));
-                }
-                _progressBar.Report(new Tuple<double, string>(percentProgress / 100.0, message));
-            }
+            _progressBar.Report(new Tuple<double, string>(percentProgress / 100.0, message));
         }
     }
 }

@@ -1,9 +1,8 @@
-﻿namespace MMR.Randomizer.Models.Settings
+﻿namespace MMR.Randomizer.Models.Settings;
+
+public enum ColorSelectionMode
 {
-    public enum ColorSelectionMode
-    {
-        Customized,
-        RandomChoice,
-        CompletelyRandom,
-    }
+    Customized,
+    RandomChoice,
+    CompletelyRandom,
 }

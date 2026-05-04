@@ -1,7 +1,6 @@
-﻿namespace MMR.DiscordBot.Services
+﻿namespace MMR.DiscordBot.Services;
+
+public class MMRTournament2Service : MMRBaseService
 {
-    public class MMRTournament2Service : MMRBaseService
-    {
-        protected override string Version => "tournament2";
-    }
+    protected override string Version => "tournament2";
 }

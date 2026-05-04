@@ -1,9 +1,8 @@
-﻿namespace MMR.Randomizer.Models.Settings
+﻿namespace MMR.Randomizer.Models.Settings;
+
+public enum Music
 {
-    public enum Music
-    {
-        Default,
-        Random,
-        None,
-    }
+    Default,
+    Random,
+    None,
 }

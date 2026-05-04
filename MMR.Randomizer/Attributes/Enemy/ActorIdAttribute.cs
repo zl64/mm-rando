@@ -1,13 +1,12 @@
 ﻿using System;
 
-namespace MMR.Randomizer.Attributes.Enemy
+namespace MMR.Randomizer.Attributes.Enemy;
+
+public class ActorIdAttribute : Attribute
 {
-    public class ActorIdAttribute : Attribute
+    public ushort Id { get; }
+    public ActorIdAttribute(ushort id)
     {
-        public ushort Id { get; }
-        public ActorIdAttribute(ushort id)
-        {
-            Id = id;
-        }
+        Id = id;
     }
 }

@@ -2,20 +2,19 @@
 using System.Runtime.Versioning;
 using System.Windows.Forms;
 
-namespace MMR.UI.Controls
+namespace MMR.UI.Controls;
+
+[SupportedOSPlatform("windows")]
+internal class InvertIndeterminateCheckBox : CheckBox
 {
-    [SupportedOSPlatform("windows")]
-    internal class InvertIndeterminateCheckBox : CheckBox
+    protected override void OnClick(EventArgs e)
     {
-        protected override void OnClick(EventArgs e)
+        CheckState = CheckState switch
         {
-            CheckState = CheckState switch
-            {
-                CheckState.Checked => CheckState.Unchecked,
-                CheckState.Unchecked => CheckState.Checked,
-                CheckState.Indeterminate => CheckState.Checked,
-                _ => CheckState,
-            };
-        }
+            CheckState.Checked => CheckState.Unchecked,
+            CheckState.Unchecked => CheckState.Checked,
+            CheckState.Indeterminate => CheckState.Checked,
+            _ => CheckState,
+        };
     }
 }

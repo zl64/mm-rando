@@ -1,11 +1,10 @@
-﻿namespace MMR.Randomizer.Models.Settings
+﻿namespace MMR.Randomizer.Models.Settings;
+
+public enum LogicMode
 {
-    public enum LogicMode
-    {
-        Casual,
-        Glitched,
-        Vanilla,
-        UserLogic,
-        NoLogic,
-    }
+    Casual,
+    Glitched,
+    Vanilla,
+    UserLogic,
+    NoLogic,
 }

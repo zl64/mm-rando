@@ -2,13 +2,12 @@
 using MMR.Randomizer.Attributes;
 using MMR.Randomizer.GameObjects;
 
-namespace MMR.Randomizer.Extensions
+namespace MMR.Randomizer.Extensions;
+
+public static class InstrumentExtensions
 {
-    public static class InstrumentExtensions
+    public static byte Id(this Instrument instrument)
     {
-        public static byte Id(this Instrument instrument)
-        {
-            return instrument.GetAttribute<IdAttribute>().Id;
-        }
+        return instrument.GetAttribute<IdAttribute>().Id;
     }
 }

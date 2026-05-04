@@ -1,9 +1,8 @@
-﻿namespace MMR.Randomizer.Models.Settings
+﻿namespace MMR.Randomizer.Models.Settings;
+
+public enum ItemPlacement
 {
-    public enum ItemPlacement
-    {
-        Random,
-        Bespoke,
-        Classic
-    }
+    Random,
+    Bespoke,
+    Classic
 }

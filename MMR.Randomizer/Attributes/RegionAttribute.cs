@@ -1,28 +1,27 @@
 ﻿using MMR.Randomizer.GameObjects;
 using System;
 
-namespace MMR.Randomizer.Attributes
+namespace MMR.Randomizer.Attributes;
+
+public class RegionAttribute : Attribute
 {
-    public class RegionAttribute : Attribute
+    public Region? Region { get; }
+    public Item? Reference { get; }
+    public bool PassToLocation { get; }
+
+    public RegionAttribute(Region region)
     {
-        public Region? Region { get; }
-        public Item? Reference { get; }
-        public bool PassToLocation { get; }
+        Region = region;
+    }
 
-        public RegionAttribute(Region region)
-        {
-            Region = region;
-        }
+    public RegionAttribute(Item reference)
+    {
+        Reference = reference;
+    }
 
-        public RegionAttribute(Item reference)
-        {
-            Reference = reference;
-        }
-
-        public RegionAttribute(Item reference, bool passToLocation)
-        {
-            Reference = reference;
-            PassToLocation = passToLocation;
-        }
+    public RegionAttribute(Item reference, bool passToLocation)
+    {
+        Reference = reference;
+        PassToLocation = passToLocation;
     }
 }

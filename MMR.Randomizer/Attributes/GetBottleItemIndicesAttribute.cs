@@ -1,14 +1,13 @@
 ﻿using System;
 
-namespace MMR.Randomizer.Attributes
-{
-    public class GetBottleItemIndicesAttribute : Attribute
-    {
-        public int[] Indices { get; private set; }
+namespace MMR.Randomizer.Attributes;
 
-        public GetBottleItemIndicesAttribute(params int[] indices)
-        {
-            Indices = indices;
-        }
+public class GetBottleItemIndicesAttribute : Attribute
+{
+    public int[] Indices { get; private set; }
+
+    public GetBottleItemIndicesAttribute(params int[] indices)
+    {
+        Indices = indices;
     }
 }

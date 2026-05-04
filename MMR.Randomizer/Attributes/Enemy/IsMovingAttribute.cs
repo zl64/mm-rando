@@ -1,8 +1,7 @@
 ﻿using System;
 
-namespace MMR.Randomizer.Attributes.Enemy
+namespace MMR.Randomizer.Attributes.Enemy;
+
+public class IsMovingAttribute : Attribute
 {
-    public class IsMovingAttribute : Attribute
-    {
-    }
 }

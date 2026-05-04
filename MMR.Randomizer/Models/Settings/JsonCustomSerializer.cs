@@ -4,38 +4,37 @@ using System.Text.Json.Serialization;
 using SystemJsonSerializer = System.Text.Json.JsonSerializer;
 using MMR.Common.Utils;
 
-namespace MMR.Randomizer.Models.Settings
+namespace MMR.Randomizer.Models.Settings;
+
+public static class JsonCustomSerializer
 {
-    public static class JsonCustomSerializer
+    public static TValue? Deserialize<TValue>(string json)
     {
-        public static TValue? Deserialize<TValue>(string json)
-        {
-            return SystemJsonSerializer.Deserialize<TValue>(json, _jsonSerializerOptions);
-        }
-
-        public static string Serialize<TValue>(TValue value)
-        {
-            return SystemJsonSerializer.Serialize(value, _jsonSerializerOptions);
-        }
-
-        private readonly static JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
-        {
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-            IgnoreReadOnlyFields = true,
-            IgnoreReadOnlyProperties = true,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            WriteIndented = true,
-            AllowTrailingCommas = true,
-            PropertyNameCaseInsensitive = true,
-            Converters =
-            {
-                new JsonColorConverter(),
-                new JsonStringEnumConverter(),
-                new NullConverter(),
-                new JsonSequenceBinaryDataConverter(),
-                new JsonSequenceSoundSampleBinaryDataConverter(),
-                new JsonInstrumentSetInfoConverter(),
-            }
-        };
+        return SystemJsonSerializer.Deserialize<TValue>(json, _jsonSerializerOptions);
     }
+
+    public static string Serialize<TValue>(TValue value)
+    {
+        return SystemJsonSerializer.Serialize(value, _jsonSerializerOptions);
+    }
+
+    private readonly static JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
+    {
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        IgnoreReadOnlyFields = true,
+        IgnoreReadOnlyProperties = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        WriteIndented = true,
+        AllowTrailingCommas = true,
+        PropertyNameCaseInsensitive = true,
+        Converters =
+        {
+            new JsonColorConverter(),
+            new JsonStringEnumConverter(),
+            new NullConverter(),
+            new JsonSequenceBinaryDataConverter(),
+            new JsonSequenceSoundSampleBinaryDataConverter(),
+            new JsonInstrumentSetInfoConverter(),
+        }
+    };
 }

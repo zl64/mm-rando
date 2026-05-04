@@ -1,15 +1,14 @@
-﻿namespace MMR.Randomizer.Models.SoundEffects
-{
+﻿namespace MMR.Randomizer.Models.SoundEffects;
 
-    /// <summary>
-    /// Tags associated with a sound effect
-    /// </summary>
-    public enum SoundEffectTag
-    {
-        Short,
-        Long,
-        LowHpBeep,
-        SystemSound,
-        Looping
-    }
+
+/// <summary>
+/// Tags associated with a sound effect
+/// </summary>
+public enum SoundEffectTag
+{
+    Short,
+    Long,
+    LowHpBeep,
+    SystemSound,
+    Looping
 }

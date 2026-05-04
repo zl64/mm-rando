@@ -1,15 +1,14 @@
 ﻿
 using System.Collections.Generic;
 
-namespace MMR.Randomizer.Models.Rom
+namespace MMR.Randomizer.Models.Rom;
+
+public class InstrumentSetInfo
 {
-    public class InstrumentSetInfo
-    {
-        public byte[] BankBinary { get; set; } = null;
-        public int BankSlot { get; set; }
-        public byte[] BankMetaData { get; set; } = null;
-        public int Modified { get; set; } = 0;
-        public long Hash { get; set; } = 0;
-        public List<SequenceSoundSampleBinaryData> InstrumentSamples { get; set; } = null;
-    }
+    public byte[] BankBinary { get; set; } = null;
+    public int BankSlot { get; set; }
+    public byte[] BankMetaData { get; set; } = null;
+    public int Modified { get; set; } = 0;
+    public long Hash { get; set; } = 0;
+    public List<SequenceSoundSampleBinaryData> InstrumentSamples { get; set; } = null;
 }
