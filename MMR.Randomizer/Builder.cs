@@ -13,7 +13,7 @@ using MMR.Randomizer.Utils;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using Point = SixLabors.Primitives.Point;
+using Point = SixLabors.ImageSharp.Point;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

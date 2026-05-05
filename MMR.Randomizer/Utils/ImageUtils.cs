@@ -53,19 +53,21 @@ public static class ImageUtils
     /// <returns>Array of image bytes.</returns>
     public static byte[] GetClockTownStrayFairyIcon()
     {
-        var fairies = GetStrayFairyIcons();
-        // Use Snowhead Stray Fairy icon as base icon.
-        var source = fairies[1];
-        using (var image = Image.LoadPixelData<Rgba32>(source, 32, 24))
-        {
-            // Shift hue to affect color.
-            image.Mutate(o => o.Hue(-80f));
-            var result = MemoryMarshal.AsBytes(image.GetPixelSpan()).ToArray();
-            if (source.Length != result.Length)
-            {
-                throw new Exception($"Invalid image data size for Stray Fairy icon: {result.Length} != {source.Length}");
-            }
-            return result;
-        }
+        int width = 32;
+        int height = 24;
+
+        byte[][] fairies = GetStrayFairyIcons();
+        byte[] source = fairies[1]; // Snowhead Stray Fairy
+
+        using var image = Image.LoadPixelData<Rgba32>(source, width, height);
+        image.Mutate(x => x.Hue(-80f));
+
+        byte[] result = new byte[source.Length];
+        image.Frames.RootFrame.CopyPixelDataTo(result);
+
+        if (result.Length != source.Length)
+            throw new Exception($"Invalid image data size for Stray Fairy icon: {result.Length} != {source.Length}");
+
+        return result;
     }
 }

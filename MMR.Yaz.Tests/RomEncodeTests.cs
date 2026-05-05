@@ -1,5 +1,6 @@
 using MMR.Randomizer.Models.Rom;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 using System.Linq;
 
 namespace MMR.Yaz.Tests;
@@ -31,6 +32,6 @@ public class RomEncodeTests
         var encoded = Yaz.EncodeWithHeader(decoded, slice); // Yaz.EncodeAndCopy(decoded);
         var aligned = Yaz.AlignTo16(encoded);
         // Currently only compares compressed lengths, as compressed output is likely slightly different due to optimization.
-        Assert.AreEqual(slice.Length, aligned);
+        ClassicAssert.AreEqual(slice.Length, aligned);
     }
 }

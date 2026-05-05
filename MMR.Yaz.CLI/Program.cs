@@ -1,47 +1,69 @@
-﻿using MzxYaz = MMR.Randomizer.Utils.Mzxrules.Yaz;
-using System;
+﻿using System;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.IO;
-using System.Reflection;
+using System.Runtime.Versioning;
 using System.Threading.Tasks;
+using MzxYaz = MMR.Randomizer.Utils.Mzxrules.Yaz;
 
 namespace MMR.Yaz.CLI;
 
+[SupportedOSPlatform("windows")]
 public static class Program
 {
-    static Command WithHandler(this Command command, string name)
+    public static async Task<int> Main(string[] args)
     {
-        var flags = BindingFlags.NonPublic | BindingFlags.Static;
-        var method = typeof(Program).GetMethod(name, flags);
-
-        var handler = CommandHandler.Create(method!);
-        command.Handler = handler;
-        return command;
-    }
-
-    public static async Task<int> Main(params string[] args)
-    {
-        var cmd = new RootCommand
+        var root = new RootCommand
         {
-            new Command("decode")
-            {
-                new Argument<string>("input", "Input file path."),
-                new Argument<string>("output", "Output file path."),
-                new Option("--legacy", "Use legacy implementation."),
-            }.WithHandler(nameof(HandleDecode)),
-            new Command("encode")
-            {
-                new Argument<string>("input", "Input file path."),
-                new Argument<string>("output", "Output file path."),
-                new Option("--legacy", "Use legacy implementation."),
-            }.WithHandler(nameof(HandleEncode)),
+            CreateDecodeCommand(),
+            CreateEncodeCommand()
         };
-        cmd.Description = "Command-line interface for MMR.Yaz decoder & encoder.";
-        return await cmd.InvokeAsync(args);
+
+        root.Description = "Command-line interface for MMR.Yaz decoder & encoder";
+
+        var parseResult = root.Parse(args);
+        return await parseResult.InvokeAsync();
     }
 
-    static void HandleDecode(string input, string output, bool legacy, IConsole console)
+    private static Command CreateDecodeCommand()
+    {
+        var input = new Argument<string>("input")
+        {
+            Description = "Input file path."
+        };
+
+        var output = new Argument<string>("output")
+        {
+            Description = "Output file path."
+        };
+
+        var legacy = new Option<bool>("--legacy")
+        {
+            Description = "Use legacy implementation."
+        };
+
+        var cmd = new Command("decode")
+        {
+            Description = "Decode a file"
+        };
+
+        cmd.Arguments.Add(input);
+        cmd.Arguments.Add(output);
+        cmd.Options.Add(legacy);
+
+        cmd.SetAction(parseResult =>
+        {
+            HandleDecode(
+                parseResult.GetValue(input),
+                parseResult.GetValue(output),
+                parseResult.GetValue(legacy)
+            );
+            return 0;
+        });
+
+        return cmd;
+    }
+
+    static void HandleDecode(string input, string output, bool legacy)
     {
         var inputBytes = File.ReadAllBytes(input);
         byte[] outputBytes = null;
@@ -50,10 +72,8 @@ public static class Program
         if (legacy)
         {
             // Legacy decode.
-            using (var memoryStream = new MemoryStream(inputBytes))
-            {
-                outputBytes = MzxYaz.Decode(memoryStream, inputBytes.Length);
-            }
+            using var memoryStream = new MemoryStream(inputBytes);
+            outputBytes = MzxYaz.Decode(memoryStream, inputBytes.Length);
         }
         else
         {
@@ -64,7 +84,46 @@ public static class Program
         File.WriteAllBytes(output, outputBytes);
     }
 
-    static void HandleEncode(string input, string output, bool legacy, IConsole console)
+    private static Command CreateEncodeCommand()
+    {
+        var input = new Argument<string>("input")
+        {
+            Description = "Input file path."
+        };
+
+        var output = new Argument<string>("output")
+        {
+            Description = "Output file path."
+        };
+
+        var legacy = new Option<bool>("--legacy")
+        {
+            Description = "Use legacy implementation."
+        };
+
+        var cmd = new Command("encode")
+        {
+            Description = "Encode a file"
+        };
+
+        cmd.Arguments.Add(input);
+        cmd.Arguments.Add(output);
+        cmd.Options.Add(legacy);
+
+        cmd.SetAction(parseResult =>
+        {
+            HandleEncode(
+                parseResult.GetValue(input),
+                parseResult.GetValue(output),
+                parseResult.GetValue(legacy)
+            );
+            return 0;
+        });
+
+        return cmd;
+    }
+
+    static void HandleEncode(string input, string output, bool legacy)
     {
         var inputBytes = File.ReadAllBytes(input);
         byte[] outputBytes = null;

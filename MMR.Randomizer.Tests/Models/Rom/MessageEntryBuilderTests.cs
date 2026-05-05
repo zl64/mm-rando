@@ -1,6 +1,7 @@
 ﻿using System;
 using MMR.Randomizer.Models.Rom;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 namespace MMR.Randomizer.Tests.Models.Rom;
 
@@ -58,7 +59,7 @@ public class MessageEntryBuilderTests
             })
             .Build();
 
-        Assert.IsTrue(entry.Equals(SkulltulaEntry));
+        ClassicAssert.IsTrue(entry.Equals(SkulltulaEntry));
     }
 
     [Test]
@@ -92,6 +93,6 @@ public class MessageEntryBuilderTests
             })
             .Build();
 
-        Assert.IsTrue(entry.Equals(SkulltulaEntry));
+        ClassicAssert.IsTrue(entry.Equals(SkulltulaEntry));
     }
 }

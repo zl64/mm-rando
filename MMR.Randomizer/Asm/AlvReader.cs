@@ -1,5 +1,5 @@
 ﻿using Be.IO;
-using Microsoft.Toolkit.HighPerformance.Extensions;
+using CommunityToolkit.HighPerformance;
 using System;
 using System.Collections;
 using System.Collections.Generic;

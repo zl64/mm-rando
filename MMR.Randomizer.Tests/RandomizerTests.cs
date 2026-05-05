@@ -10,6 +10,7 @@ using MMR.Randomizer.Models.Rom;
 using MMR.Randomizer.Models.Settings;
 using MMR.Randomizer.Utils;
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 namespace MMR.Randomizer.Tests;
 
@@ -62,7 +63,7 @@ public class RandomizerTests
         var randomizer = new Randomizer(_settings, seed);
         var result = randomizer.Randomize(new NoProgressReporter());
 
-        Assert.AreEqual(MessageCost.MessageCosts.Length, result.MessageCosts.Count);
+        ClassicAssert.AreEqual(MessageCost.MessageCosts.Length, result.MessageCosts.Count);
     }
 
     [Test]
@@ -84,7 +85,7 @@ public class RandomizerTests
 
         for (var i = 0; i < MessageCost.MessageCosts.Length; i++)
         {
-            Assert.AreEqual(priceMode.HasFlag(MessageCost.MessageCosts[i].Category), result.MessageCosts[i] != null);
+            ClassicAssert.AreEqual(priceMode.HasFlag(MessageCost.MessageCosts[i].Category), result.MessageCosts[i] != null);
         }
     }
 
@@ -126,7 +127,7 @@ public class RandomizerTests
             {
                 expectedCost = 999;
             }
-            Assert.AreEqual(expectedCost, result.MessageCosts[i]);
+            ClassicAssert.AreEqual(expectedCost, result.MessageCosts[i]);
         }
     }
 
@@ -178,7 +179,7 @@ public class RandomizerTests
             {
                 expectedCost = 999;
             }
-            Assert.AreEqual(expectedCost, result.MessageCosts[i], "Cost {0} was incorrect.", messageCost.Name);
+            ClassicAssert.AreEqual(expectedCost, result.MessageCosts[i], "Cost {0} was incorrect.", messageCost.Name);
         }
     }
 
@@ -201,7 +202,7 @@ public class RandomizerTests
         {
             randomizer.Randomize(new NoProgressReporter());
         });
-        Assert.AreEqual("Unable to place Letter to Kafei anywhere.", exception.Message);
+        ClassicAssert.AreEqual("Unable to place Letter to Kafei anywhere.", exception.Message);
     }
 
     [Test]
@@ -244,7 +245,7 @@ public class RandomizerTests
         {
             randomizer.Randomize(new NoProgressReporter());
         });
-        Assert.AreEqual("Unable to place Deku Playground anywhere.", exception.Message);
+        ClassicAssert.AreEqual("Unable to place Deku Playground anywhere.", exception.Message);
     }
 
     [Test]
@@ -266,7 +267,7 @@ public class RandomizerTests
         {
             randomizer.Randomize(new NoProgressReporter());
         });
-        Assert.AreEqual("Unable to place Letter to Kafei anywhere.", exception.Message);
+        ClassicAssert.AreEqual("Unable to place Letter to Kafei anywhere.", exception.Message);
     }
 
     [Test]
@@ -294,7 +295,7 @@ public class RandomizerTests
             randomizedResult = randomizer.Randomize(new NoProgressReporter());
         });
 
-        Assert.AreNotEqual(Item.GrottoGenericWoodsOfMystery, randomizedResult.ItemList[Item.GrottoGenericWoodsOfMystery].NewLocation);
+        ClassicAssert.AreNotEqual(Item.GrottoGenericWoodsOfMystery, randomizedResult.ItemList[Item.GrottoGenericWoodsOfMystery].NewLocation);
     }
 
     [Test]
@@ -323,7 +324,7 @@ public class RandomizerTests
         {
             randomizer.Randomize(new NoProgressReporter());
         });
-        Assert.AreEqual("Unable to place Letter to Kafei anywhere.", exception.Message);
+        ClassicAssert.AreEqual("Unable to place Letter to Kafei anywhere.", exception.Message);
     }
 
     [Test]
@@ -357,7 +358,7 @@ public class RandomizerTests
         {
             randomizer.Randomize(new NoProgressReporter());
         });
-        Assert.AreEqual("Unable to place Letter to Kafei anywhere.", exception.Message);
+        ClassicAssert.AreEqual("Unable to place Letter to Kafei anywhere.", exception.Message);
     }
 
     [Test]
@@ -395,8 +396,8 @@ public class RandomizerTests
             randomizedResult = randomizer.Randomize(new NoProgressReporter());
         });
 
-        Assert.AreEqual(Item.CollectableRanchHouseBarnBarnItem1, randomizedResult.ItemList[Item.TradeItemKafeiLetter].NewLocation);
-        Assert.AreEqual(Item.CollectableTerminaFieldInvisibleItem7, randomizedResult.ItemList[Item.ItemPowderKeg].NewLocation);
+        ClassicAssert.AreEqual(Item.CollectableRanchHouseBarnBarnItem1, randomizedResult.ItemList[Item.TradeItemKafeiLetter].NewLocation);
+        ClassicAssert.AreEqual(Item.CollectableTerminaFieldInvisibleItem7, randomizedResult.ItemList[Item.ItemPowderKeg].NewLocation);
     }
 
     [Test]
@@ -434,8 +435,8 @@ public class RandomizerTests
             randomizedResult = randomizer.Randomize(new NoProgressReporter());
         });
 
-        Assert.AreEqual(Item.CollectableRanchHouseBarnBarnItem1, randomizedResult.ItemList[Item.TradeItemKafeiLetter].NewLocation);
-        Assert.AreEqual(Item.CollectableRanchHouseBarnBarnItem2, randomizedResult.ItemList[Item.ItemPowderKeg].NewLocation);
+        ClassicAssert.AreEqual(Item.CollectableRanchHouseBarnBarnItem1, randomizedResult.ItemList[Item.TradeItemKafeiLetter].NewLocation);
+        ClassicAssert.AreEqual(Item.CollectableRanchHouseBarnBarnItem2, randomizedResult.ItemList[Item.ItemPowderKeg].NewLocation);
     }
 
     [Test]
@@ -472,7 +473,7 @@ public class RandomizerTests
         {
             randomizer.Randomize(new NoProgressReporter());
         });
-        Assert.AreEqual("Unable to place Powder Keg anywhere.", exception.Message);
+        ClassicAssert.AreEqual("Unable to place Powder Keg anywhere.", exception.Message);
     }
 
     [TearDown]

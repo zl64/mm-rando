@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Threading;
 using MMR.Common.Utils;
 using System.Diagnostics;
+using System.Net.Http;
 
 namespace MMR.DiscordBot.Modules;
 
@@ -552,10 +553,13 @@ public abstract class BaseMMRModule : ModuleBase<SocketCommandContext>
             replacing = true;
         }
 
-        using (var client = new WebClient())
-        {
-            await client.DownloadFileTaskAsync(new Uri(settingsFile.Url), settingsPath);
-        }
+        using var http = new HttpClient();
+        using var response = await http.GetAsync(settingsFile.Url);
+
+        response.EnsureSuccessStatusCode();
+
+        await using var fs = File.OpenRead(settingsPath);
+        await response.Content.CopyToAsync(fs);
 
         await ReplyNoTagAsync($"{(replacing ? "Replaced" : "Added")} settings.");
     }
@@ -677,10 +681,13 @@ public abstract class BaseMMRModule : ModuleBase<SocketCommandContext>
             replacing = true;
         }
 
-        using (var client = new WebClient())
-        {
-            await client.DownloadFileTaskAsync(new Uri(settingsFile.Url), settingPath);
-        }
+        using var http = new HttpClient();
+        using var response = await http.GetAsync(settingsFile.Url);
+
+        response.EnsureSuccessStatusCode();
+
+        await using var fs = File.OpenWrite(settingPath);
+        await response.Content.CopyToAsync(fs);
 
         await ReplyNoTagAsync($"{(replacing ? "Replaced" : "Added")} mystery setting.");
     }
@@ -824,10 +831,13 @@ public abstract class BaseMMRModule : ModuleBase<SocketCommandContext>
             replacing = true;
         }
 
-        using (var client = new WebClient())
-        {
-            await client.DownloadFileTaskAsync(new Uri(settingsFile.Url), settingsPath);
-        }
+        using var http = new HttpClient();
+        using var response = await http.GetAsync(settingsFile.Url);
+
+        response.EnsureSuccessStatusCode();
+
+        await using var fs = File.OpenWrite(settingsPath);
+        await response.Content.CopyToAsync(fs);
 
         await ReplyNoTagAsync($"{(replacing ? "Replaced" : "Added")} default settings.");
     }
