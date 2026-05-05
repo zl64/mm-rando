@@ -16,6 +16,7 @@ static class Program
     {
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
+        Application.SetColorMode(SystemColorMode.Classic); // TODO: Get dark mode to not look like shit in winforms
         Application.Run(new MainForm());
     }
 }
