@@ -1,10 +1,5 @@
 ﻿using MMR.Randomizer.Models.SoundEffects;
 using MMR.Randomizer.Utils;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 
 namespace MMR.Randomizer.Models.Rom;
 

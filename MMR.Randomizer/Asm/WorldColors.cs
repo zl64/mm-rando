@@ -1,6 +1,4 @@
-﻿using System.Drawing;
-
-namespace MMR.Randomizer.Asm;
+﻿namespace MMR.Randomizer.Asm;
 
 /// <summary>
 /// World color values.

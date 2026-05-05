@@ -1,9 +1,4 @@
-﻿using MMR.Randomizer.Asm;
-using MMR.Randomizer.Attributes.Setting;
-using MMR.Randomizer.Models.Colors;
-using MMR.Randomizer.Models.Rom;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using MMR.Randomizer.Models.Rom;
 
 namespace MMR.Randomizer.Models.Settings;
 

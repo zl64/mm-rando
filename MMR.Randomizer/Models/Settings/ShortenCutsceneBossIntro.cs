@@ -1,6 +1,4 @@
-﻿using System;
-using System.ComponentModel;
-using MMR.Randomizer.Attributes;
+﻿using MMR.Randomizer.Attributes;
 
 namespace MMR.Randomizer.Models.Settings;
 

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MMR.Randomizer.Attributes;
+﻿namespace MMR.Randomizer.Attributes;
 
 [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
 public class StartingItemAttribute : Attribute

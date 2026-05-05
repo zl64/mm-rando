@@ -3,10 +3,6 @@ using MMR.Randomizer.Attributes.Setting;
 using MMR.Randomizer.Extensions;
 using MMR.Randomizer.GameObjects;
 using MMR.Randomizer.Models.Colors;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
-using System.Drawing;
 using System.Text.Json.Serialization;
 
 namespace MMR.Randomizer.Models.Settings;

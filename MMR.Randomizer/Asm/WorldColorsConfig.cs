@@ -1,7 +1,6 @@
 ﻿using MMR.Randomizer.GameObjects;
 using MMR.Randomizer.Models.Settings;
 using MMR.Randomizer.Utils;
-using System.Drawing;
 
 namespace MMR.Randomizer.Asm;
 

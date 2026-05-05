@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using MMR.Randomizer.Constants;
+﻿using MMR.Randomizer.Constants;
 
 namespace MMR.Randomizer.Models.Rom;
 

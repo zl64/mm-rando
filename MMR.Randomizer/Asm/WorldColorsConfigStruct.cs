@@ -1,8 +1,6 @@
 ﻿using Be.IO;
 using MMR.Common.Extensions;
 using MMR.Randomizer.Extensions;
-using System.Drawing;
-using System.IO;
 
 namespace MMR.Randomizer.Asm;
 

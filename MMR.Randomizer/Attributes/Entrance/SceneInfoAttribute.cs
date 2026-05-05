@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MMR.Randomizer.Attributes.Entrance;
+﻿namespace MMR.Randomizer.Attributes.Entrance;
 
 public class SceneInternalIdAttribute : Attribute
 {

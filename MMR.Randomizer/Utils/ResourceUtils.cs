@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-
-namespace MMR.Randomizer.Utils;
+﻿namespace MMR.Randomizer.Utils;
 
 
 public class ResourceUtils

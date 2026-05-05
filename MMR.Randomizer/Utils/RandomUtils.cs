@@ -1,7 +1,4 @@
-﻿using System;
-using System.Drawing;
-
-namespace MMR.Randomizer.Utils;
+﻿namespace MMR.Randomizer.Utils;
 
 public class RandomUtils
 {

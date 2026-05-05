@@ -1,7 +1,6 @@
 ﻿using MMR.Randomizer;
 using System;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace MMR.CLI;
 

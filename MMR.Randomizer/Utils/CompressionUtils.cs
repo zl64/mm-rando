@@ -1,7 +1,4 @@
-﻿using System.IO;
-using System.IO.Compression;
-
-namespace MMR.Randomizer.Utils;
+﻿namespace MMR.Randomizer.Utils;
 
 public static class CompressionUtils
 {

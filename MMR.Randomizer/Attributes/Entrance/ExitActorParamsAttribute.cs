@@ -1,6 +1,5 @@
 ﻿using MMR.Randomizer.Extensions;
 using MMR.Randomizer.GameObjects;
-using System;
 
 namespace MMR.Randomizer.Attributes.Entrance;
 

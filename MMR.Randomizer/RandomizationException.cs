@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MMR.Randomizer;
+﻿namespace MMR.Randomizer;
 
 public class RandomizationException : Exception
 {

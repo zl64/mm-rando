@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MMR.Randomizer.Models.Rom;
+﻿namespace MMR.Randomizer.Models.Rom;
 
 public readonly partial struct VirtualFile
 {

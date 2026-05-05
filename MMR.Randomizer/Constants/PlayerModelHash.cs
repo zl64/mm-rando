@@ -1,6 +1,4 @@
-﻿using System.Security.Cryptography;
-
-namespace MMR.Randomizer.Constants;
+﻿namespace MMR.Randomizer.Constants;
 
 /// <summary>
 /// Contains hashes for player model object data.

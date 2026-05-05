@@ -1,7 +1,4 @@
-﻿using MMR.Randomizer.Models;
-using System;
-
-namespace MMR.Randomizer.Attributes;
+﻿namespace MMR.Randomizer.Attributes;
 
 public class ExclusiveItemAttribute : Attribute
 {

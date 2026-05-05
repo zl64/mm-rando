@@ -1,8 +1,6 @@
 ﻿using Be.IO;
 using MMR.Common.Extensions;
 using MMR.Randomizer.Attributes.Setting;
-using System.IO;
-using System.Linq;
 
 namespace MMR.Randomizer.Asm;
 

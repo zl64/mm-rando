@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MMR.Randomizer.Models;
+﻿namespace MMR.Randomizer.Models;
 
 public struct ItemGraphic : IEquatable<ItemGraphic>
 {

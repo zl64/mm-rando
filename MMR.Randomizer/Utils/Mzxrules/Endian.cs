@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MMR.Randomizer.Utils.Mzxrules;
+﻿namespace MMR.Randomizer.Utils.Mzxrules;
 
 public static class Endian
 {

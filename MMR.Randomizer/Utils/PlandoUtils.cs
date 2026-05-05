@@ -1,9 +1,4 @@
 ﻿using MMR.Randomizer.GameObjects;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Diagnostics;
-using System.Linq;
 using MMR.Randomizer.Models.Rom;
 using MMR.Randomizer.Constants;
 using MMR.Common.Utils;

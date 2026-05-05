@@ -2,10 +2,7 @@
 using MMR.Randomizer.Attributes.Setting;
 using MMR.Randomizer.Extensions;
 using MMR.Randomizer.GameObjects;
-using MMR.Randomizer.Models;
 using MMR.Randomizer.Models.Settings;
-using MMR.Randomizer.Utils;
-using MMR.UI.Forms.Tooltips;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,7 +10,6 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.Versioning;
-using System.Text;
 using System.Windows.Forms;
 
 namespace MMR.UI.Forms;

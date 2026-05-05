@@ -1,6 +1,4 @@
 ﻿using MMR.Randomizer.Attributes.Entrance;
-using System;
-using System.ComponentModel;
 
 namespace MMR.Randomizer.Models.Settings;
 

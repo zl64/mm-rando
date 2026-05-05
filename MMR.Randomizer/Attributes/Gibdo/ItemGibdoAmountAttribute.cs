@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MMR.Randomizer.Attributes.Gibdo;
+﻿namespace MMR.Randomizer.Attributes.Gibdo;
 
 [AttributeUsage(AttributeTargets.Field)]
 public class ItemGibdoAmountAttribute : Attribute

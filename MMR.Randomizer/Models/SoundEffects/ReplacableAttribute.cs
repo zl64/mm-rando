@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-
-namespace MMR.Randomizer.Models.SoundEffects;
+﻿namespace MMR.Randomizer.Models.SoundEffects;
 
 /// <summary>
 /// Marks a sound effect as replacable, requiring a base instruction and at least one address

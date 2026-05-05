@@ -1,7 +1,4 @@
-﻿using System;
-using System.Reflection;
-
-namespace MMR.Randomizer.Attributes;
+﻿namespace MMR.Randomizer.Attributes;
 
 [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
 public class HackContentAttribute : Attribute

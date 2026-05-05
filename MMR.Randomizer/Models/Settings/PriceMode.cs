@@ -1,7 +1,4 @@
-﻿using System;
-using System.ComponentModel;
-
-namespace MMR.Randomizer.Models.Settings;
+﻿namespace MMR.Randomizer.Models.Settings;
 
 [Flags]
 [Description("Prices")]

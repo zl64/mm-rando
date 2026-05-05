@@ -1,7 +1,5 @@
 ﻿using SixLabors.ImageSharp.ColorSpaces;
 using SixLabors.ImageSharp.ColorSpaces.Conversion;
-using System;
-using System.Drawing;
 
 namespace MMR.Randomizer.Extensions;
 

@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace MMR.Randomizer.Models.Rom;
+﻿namespace MMR.Randomizer.Models.Rom;
 
 public class MMFile
 {

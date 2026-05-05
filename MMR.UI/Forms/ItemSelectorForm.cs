@@ -1,5 +1,4 @@
-﻿using MMR.Randomizer.Extensions;
-using MMR.Randomizer.GameObjects;
+﻿using MMR.Randomizer.GameObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;

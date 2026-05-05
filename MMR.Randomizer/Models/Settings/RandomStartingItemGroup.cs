@@ -2,7 +2,6 @@
 using MMR.Randomizer.Extensions;
 using MMR.Randomizer.GameObjects;
 using MMR.Randomizer.Utils;
-using System.Collections.Generic;
 
 namespace MMR.Randomizer.Models.Settings;
 

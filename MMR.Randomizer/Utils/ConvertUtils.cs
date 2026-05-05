@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
-
-namespace MMR.Randomizer.Utils;
+﻿namespace MMR.Randomizer.Utils;
 
 public static class ConvertUtils
 {

@@ -1,6 +1,4 @@
 ﻿using MMR.Randomizer.Extensions;
-using System;
-using System.Drawing;
 
 namespace MMR.Randomizer.Asm;
 

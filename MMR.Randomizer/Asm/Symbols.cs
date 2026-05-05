@@ -1,11 +1,5 @@
-﻿using MMR.Randomizer.GameObjects;
-using MMR.Randomizer.Models.Rom;
+﻿using MMR.Randomizer.Models.Rom;
 using MMR.Randomizer.Utils;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
 
 namespace MMR.Randomizer.Asm;

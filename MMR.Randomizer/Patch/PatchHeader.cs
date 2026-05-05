@@ -1,7 +1,4 @@
-﻿using System;
-using System.Buffers.Binary;
-
-namespace MMR.Randomizer.Patch;
+﻿namespace MMR.Randomizer.Patch;
 
 /// <summary>
 /// Header for file entries in patch data.

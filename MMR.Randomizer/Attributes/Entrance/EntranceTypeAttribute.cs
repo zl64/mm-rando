@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.Linq;
-
-namespace MMR.Randomizer.Attributes.Entrance;
+﻿namespace MMR.Randomizer.Attributes.Entrance;
 
 public class EntranceTypeAttribute : Attribute
 {

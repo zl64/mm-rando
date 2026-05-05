@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace MMR.Randomizer.Asm;
+﻿namespace MMR.Randomizer.Asm;
 
 /// <summary>
 /// Builder for object data bundled into a single buffer.

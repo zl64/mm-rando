@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MMR.Randomizer.Attributes.Entrance;
+﻿namespace MMR.Randomizer.Attributes.Entrance;
 
 [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
 public class ExitAddressAttribute : Attribute

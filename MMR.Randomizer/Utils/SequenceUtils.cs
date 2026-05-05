@@ -1,18 +1,9 @@
 ﻿using MMR.Randomizer.Constants;
 using MMR.Randomizer.Models.Rom;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Diagnostics;
-using System.IO.Compression;
-using System.Security.Cryptography;
 using MMR.Randomizer.Models.Settings;
 using MMR.Randomizer.Models;
 using MMR.Common.Utils;
 using MMR.Randomizer.Asm;
-using System.Text.RegularExpressions;
 
 namespace MMR.Randomizer.Utils;
 

@@ -6,7 +6,6 @@ using MMR.Randomizer.Attributes.Entrance;
 using MMR.Randomizer.Extensions;
 using MMR.Randomizer.GameObjects;
 using MMR.Randomizer.Models;
-using MMR.Randomizer.Models.Rom;
 using MMR.Randomizer.Models.Settings;
 using MMR.Randomizer.Utils;
 using NUnit.Framework;

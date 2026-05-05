@@ -1,6 +1,5 @@
 ﻿using MMR.Randomizer.Models;
 using MMR.Randomizer.Utils;
-using System.Collections.Generic;
 
 namespace MMR.Randomizer.Asm;
 

@@ -1,7 +1,5 @@
 ﻿using MMR.Randomizer.Models.Rom;
 using MMR.Randomizer.Utils;
-using System;
-using System.Collections.Generic;
 
 namespace MMR.Randomizer.Asm;
 

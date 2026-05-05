@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MMR.Randomizer.Models;
+﻿namespace MMR.Randomizer.Models;
 
 [Flags]
 public enum TimeOfDay

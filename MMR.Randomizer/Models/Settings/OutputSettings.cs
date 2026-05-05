@@ -1,6 +1,4 @@
 ﻿using MMR.Randomizer.Attributes.Setting;
-using System.ComponentModel;
-using System.IO;
 using System.Text.Json.Serialization;
 
 namespace MMR.Randomizer.Models.Settings;

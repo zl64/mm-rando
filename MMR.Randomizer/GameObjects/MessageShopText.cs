@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MMR.Randomizer.GameObjects;
+﻿namespace MMR.Randomizer.GameObjects;
 
 public enum MessageShopText
 {

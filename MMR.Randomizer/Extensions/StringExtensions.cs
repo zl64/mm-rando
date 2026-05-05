@@ -1,11 +1,4 @@
-﻿using MMR.Common.Extensions;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text.RegularExpressions;
-
-namespace MMR.Randomizer.Extensions;
+﻿namespace MMR.Randomizer.Extensions;
 
 public static class StringExtensions
 {

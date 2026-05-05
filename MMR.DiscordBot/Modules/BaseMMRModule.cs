@@ -9,7 +9,6 @@ using MMR.DiscordBot.Data.Entities;
 using MMR.DiscordBot.Data.Repositories;
 using MMR.DiscordBot.Services;
 using MMR.Common.Extensions;
-using System.Net;
 using System.Collections.Generic;
 using System.Threading;
 using MMR.Common.Utils;

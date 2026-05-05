@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace MMR.Randomizer.Attributes.Actor;
+﻿namespace MMR.Randomizer.Attributes.Actor;
 
 public class ActorInitVarOffsetAttribute : Attribute
 {

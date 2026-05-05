@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.Linq;
-
-namespace MMR.Randomizer.Attributes.Gibdo;
+﻿namespace MMR.Randomizer.Attributes.Gibdo;
 
 [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
 public class ItemGibdoLogicConditionalAttribute : Attribute

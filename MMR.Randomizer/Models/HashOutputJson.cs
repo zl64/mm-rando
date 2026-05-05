@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace MMR.Randomizer.Models;
+﻿namespace MMR.Randomizer.Models;
 
 public class HashOutputJson
 {

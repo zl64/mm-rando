@@ -1,7 +1,5 @@
 ﻿using MMR.Randomizer.GameObjects;
 using MMR.Randomizer.Models;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace MMR.Randomizer;
 

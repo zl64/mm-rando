@@ -1,9 +1,5 @@
 ﻿// Yaz (de)compression algorithm was found on http://www.amnoid.de and ported to C#
 
-using System;
-using System.IO;
-using System.Runtime.CompilerServices;
-
 namespace MMR.Randomizer.Utils.Mzxrules;
 
 public class Yaz

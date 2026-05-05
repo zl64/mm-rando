@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace MMR.Randomizer.Utils;
+﻿namespace MMR.Randomizer.Utils;
 
 
 public class Yaz0Utils

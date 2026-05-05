@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MMR.Randomizer.Attributes.Enemy;
+﻿namespace MMR.Randomizer.Attributes.Enemy;
 
 [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
 public class VariableAttribute : Attribute

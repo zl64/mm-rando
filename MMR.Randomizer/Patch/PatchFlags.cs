@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MMR.Randomizer.Patch;
+﻿namespace MMR.Randomizer.Patch;
 
 [Flags]
 public enum PatchFlags : ushort

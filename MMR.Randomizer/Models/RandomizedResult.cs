@@ -1,8 +1,6 @@
 ﻿using MMR.Randomizer.Models.Rom;
 using MMR.Randomizer.Models.Settings;
 using MMR.Randomizer.GameObjects;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using MMR.Randomizer.Utils;
 
 namespace MMR.Randomizer.Models;

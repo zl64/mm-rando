@@ -3,10 +3,6 @@ using MMR.Randomizer.Models;
 using MMR.Randomizer.Models.Settings;
 using MMR.Randomizer.Patch;
 using MMR.Randomizer.Utils;
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Threading;
 
 namespace MMR.Randomizer;
 

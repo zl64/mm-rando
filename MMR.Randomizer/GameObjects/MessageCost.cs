@@ -1,5 +1,4 @@
 ﻿using MMR.Randomizer.Models.Settings;
-using System.Collections.Generic;
 
 namespace MMR.Randomizer.GameObjects;
 

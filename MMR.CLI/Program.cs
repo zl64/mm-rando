@@ -1,5 +1,4 @@
 ﻿using MMR.Randomizer.Models.Settings;
-using MMR.Randomizer.Models;
 using MMR.Randomizer;
 using MMR.Randomizer.GameObjects;
 using System.Collections.Generic;
@@ -17,7 +16,6 @@ using System.Drawing;
 using MMR.Common.Extensions;
 using System.Text.Json.Serialization;
 using System.ComponentModel;
-using System.Text.RegularExpressions;
 using MMR.Randomizer.Attributes.Setting;
 using System.ComponentModel.DataAnnotations;
 

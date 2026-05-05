@@ -2,12 +2,6 @@
 using MMR.Common.Extensions;
 using MMR.Randomizer.Models.Rom;
 using MMR.Randomizer.Utils;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Security.Cryptography;
 using VCDiff.Decoders;
 using VCDiff.Encoders;
 using VCDiff.Includes;

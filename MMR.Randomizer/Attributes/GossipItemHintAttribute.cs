@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace MMR.Randomizer.Attributes;
+﻿namespace MMR.Randomizer.Attributes;
 
 public class GossipItemHintAttribute : Attribute
 {

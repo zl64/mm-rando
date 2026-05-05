@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-
-namespace MMR.Randomizer.Models.Rom;
+﻿namespace MMR.Randomizer.Models.Rom;
 
 public class RomFile
 {

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-
-namespace MMR.Randomizer.Models.SoundEffects;
+﻿namespace MMR.Randomizer.Models.SoundEffects;
 
 /// <summary>
 /// Mark the sound effect with tags. E.g. Short.

@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-
-namespace MMR.Randomizer.GameObjects;
+﻿namespace MMR.Randomizer.GameObjects;
 
 public enum ItemCategory
 {

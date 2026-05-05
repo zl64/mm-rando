@@ -1,5 +1,4 @@
-﻿using MMR.Randomizer.Attributes;
-using MMR.Randomizer.Attributes.Entrance;
+﻿using MMR.Randomizer.Attributes.Entrance;
 
 namespace MMR.Randomizer.GameObjects;
 

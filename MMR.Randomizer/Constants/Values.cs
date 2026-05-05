@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.IO;
-
-namespace MMR.Randomizer.Constants;
+﻿namespace MMR.Randomizer.Constants;
 
 public static class Values
 {

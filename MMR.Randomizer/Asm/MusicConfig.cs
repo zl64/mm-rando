@@ -2,7 +2,6 @@
 using MMR.Common.Extensions;
 using MMR.Randomizer.Models.Settings;
 using MMR.Randomizer.Utils;
-using System.IO;
 
 namespace MMR.Randomizer.Asm;
 

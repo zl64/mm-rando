@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MMR.Randomizer.GameObjects;
+﻿namespace MMR.Randomizer.GameObjects;
 
 [Flags]
 public enum TingleMap : byte

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-
-namespace MMR.Randomizer.Models.SoundEffects;
+﻿namespace MMR.Randomizer.Models.SoundEffects;
 
 /// <summary>
 /// Specify which tags are valid for replacing the sound.

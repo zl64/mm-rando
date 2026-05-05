@@ -1,8 +1,4 @@
-﻿using MMR.Common.Extensions;
-using MMR.Randomizer.Models.Rom;
-using MMR.Randomizer.Utils;
-using System;
-using System.Linq;
+﻿using MMR.Randomizer.Utils;
 
 namespace MMR.Randomizer.Models.SoundEffects;
 

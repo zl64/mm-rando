@@ -1,7 +1,4 @@
-﻿using System;
-using System.Drawing;
-
-namespace MMR.Randomizer.Models.Colors;
+﻿namespace MMR.Randomizer.Models.Colors;
 
 /// <summary>
 /// Named pair of colors.

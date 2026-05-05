@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MMR.Randomizer.Models.SoundEffects;
+﻿namespace MMR.Randomizer.Models.SoundEffects;
 
 public class EffectAttribute : Attribute
 {
