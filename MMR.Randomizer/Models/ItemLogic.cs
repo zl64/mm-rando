@@ -19,6 +19,9 @@ public class ItemLogic
     public int TimeAvailable;
 
     [DataMember]
+    public int TimeSetup;
+
+    [DataMember]
     public List<List<int>> ConditionalItemIds;
 
     [DataMember]
@@ -40,6 +43,7 @@ public class ItemLogic
         RequiredItemIds = copyFrom.RequiredItemIds?.ToList();
         ConditionalItemIds = copyFrom.ConditionalItemIds?.Select(c => c.ToList()).ToList();
         TimeAvailable = copyFrom.TimeAvailable;
+        TimeSetup = copyFrom.TimeSetup;
         Acquired = copyFrom.Acquired;
         IsFakeItem = copyFrom.IsFakeItem;
         ShouldAutoAcquire = copyFrom.ShouldAutoAcquire;
@@ -53,6 +57,7 @@ public class ItemLogic
         RequiredItemIds = itemObject.DependsOnItems?.Cast<int>().ToList();
         ConditionalItemIds = itemObject.Conditionals?.Select(c => c.Cast<int>().ToList()).ToList();
         TimeAvailable = itemObject.TimeAvailable;
+        TimeSetup = itemObject.TimeSetup;
         IsFakeItem = itemObject.Item.IsFake() && itemObject.Item.Entrance() == null;
         IsItemRemoved = itemObject.ItemOverride.HasValue;
 
